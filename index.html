@@ -80,11 +80,8 @@
       line-height: 1;
       letter-spacing: -0.01em;
       user-select: none;
-    }
-
-    .logo-paren {
-      letter-spacing: 0.14em;
-      font-weight: 400;
+      display: inline-flex;
+      align-items: center;
     }
 
     /* Custom subtle scrollbar inside modal roster */
@@ -102,9 +99,9 @@
     /* Lesson logo SVG container */
     .lesson-logo-svg {
       display: block;
-      width: 64px;
+      width: 58px;
       flex-shrink: 0;
-      overflow: visible;
+      overflow: hidden;
     }
 
     @media (max-width: 540px) {
@@ -122,8 +119,12 @@
   <main class="app-shell">
     <!-- Header -->
     <header class="flex items-center justify-between mb-7">
-      <div class="logo-text">
-        <span class="logo-paren">((</span><span class="font-normal">квант</span><span class="font-bold">touch</span><span class="logo-paren">))</span>
+      <div class="logo-text gap-[4px]">
+        <span class="text-[21px] font-light leading-none">(</span>
+        <span class="text-[14px] font-normal leading-none">(</span>
+        <span class="text-[20px] leading-none"><span class="font-normal">квант</span><span class="font-bold">touch</span></span>
+        <span class="text-[14px] font-normal leading-none">)</span>
+        <span class="text-[21px] font-light leading-none">)</span>
       </div>
 
       <div class="flex items-center gap-2 text-white/40">
@@ -151,7 +152,7 @@
       <article onclick="openLessonModal('past')" class="bg-[#280644] rounded-[14px] px-5 py-4 flex items-end justify-between cursor-pointer hover:bg-[#310852] transition-colors">
         <div class="flex items-center gap-5">
           <!-- Fixed-width Blocky SVG Logo -->
-          <svg class="lesson-logo-svg" data-course="MIDDLE" data-num="12" data-color="#8B6CA6" width="64" height="54"></svg>
+          <svg class="lesson-logo-svg" data-course="MIDDLE" data-num="12" data-color="#8B6CA6" width="58" height="50"></svg>
 
           <div class="space-y-1">
             <div class="flex items-center gap-1.5 text-[13px] text-[#8B6CA6]">
@@ -179,7 +180,7 @@
         <div class="flex items-end justify-between mb-3">
           <div class="flex items-center gap-5">
             <!-- Fixed-width Blocky SVG Logo -->
-            <svg class="lesson-logo-svg" data-course="НЕЙРО" data-num="05" data-color="#1B012E" width="64" height="54"></svg>
+            <svg class="lesson-logo-svg" data-course="НЕЙРО" data-num="05" data-color="#1B012E" width="58" height="50"></svg>
 
             <div class="space-y-1">
               <div class="flex items-center gap-1.5 text-[13px] text-[#614B75]">
@@ -219,7 +220,7 @@
       <article onclick="openLessonModal('upcoming')" class="bg-[#4B0480] rounded-[14px] px-5 py-4 flex items-center cursor-pointer hover:bg-[#570694] transition-colors">
         <div class="flex items-center gap-5">
           <!-- Fixed-width Blocky SVG Logo -->
-          <svg class="lesson-logo-svg" data-course="ДИЗАЙН" data-num="12" data-color="#FFFFFF" width="64" height="54"></svg>
+          <svg class="lesson-logo-svg" data-course="ДИЗАЙН" data-num="12" data-color="#FFFFFF" width="58" height="50"></svg>
 
           <div class="space-y-1">
             <div class="flex items-center gap-1.5 text-[13px] text-white/85">
@@ -248,7 +249,7 @@
       
       <!-- Header Info -->
       <div class="flex items-center gap-4 mb-4">
-        <svg id="modal-logo-svg" class="lesson-logo-svg" data-course="НЕЙРО" data-num="05" data-color="#1B012E" width="64" height="54"></svg>
+        <svg id="modal-logo-svg" class="lesson-logo-svg" data-course="НЕЙРО" data-num="05" data-color="#1B012E" width="58" height="50"></svg>
 
         <div class="space-y-1">
           <div class="flex items-center gap-1.5 text-[13px] text-[#4C3661]">
@@ -397,13 +398,13 @@
 
     /**
      * Renders a two-line Blocky logo inside an SVG where BOTH lines
-     * are scaled proportionally to match the exact target width (64px).
+     * are scaled proportionally to match the exact target width (58px).
      */
     function renderBlockyLogo(svgEl) {
       const course = (svgEl.dataset.course || '').toUpperCase();
       const num = svgEl.dataset.num || '';
       const color = svgEl.dataset.color || '#FFFFFF';
-      const targetWidth = 64;
+      const targetWidth = 58;
       const gap = 3;
       const ns = 'http://www.w3.org/2000/svg';
 
@@ -411,7 +412,7 @@
 
       const createText = (str) => {
         const t = document.createElementNS(ns, 'text');
-        t.setAttribute('font-family', 'Blocky, sans-serif');
+        t.setAttribute('font-family', 'Blocky');
         t.setAttribute('font-size', '100');
         t.setAttribute('fill', color);
         t.setAttribute('x', '0');
@@ -430,16 +431,25 @@
 
       if (b1.width === 0 || b2.width === 0) return;
 
-      // Calculate exact font sizes so each line spans exactly targetWidth
-      const fs1 = 100 * (targetWidth / b1.width);
-      const fs2 = 100 * (targetWidth / b2.width);
-
+      // Pass 1: scale font-size to match targetWidth
+      let fs1 = 100 * (targetWidth / b1.width);
+      let fs2 = 100 * (targetWidth / b2.width);
       t1.setAttribute('font-size', fs1.toFixed(2));
       t2.setAttribute('font-size', fs2.toFixed(2));
 
-      // Re-measure with final font sizes to position tightly with exact ink bounds
-      const fb1 = t1.getBBox();
-      const fb2 = t2.getBBox();
+      // Pass 2: refine font-size against hinting/kerning at target size
+      let fb1 = t1.getBBox();
+      let fb2 = t2.getBBox();
+      if (fb1.width > 0) {
+        fs1 = fs1 * (targetWidth / fb1.width);
+        t1.setAttribute('font-size', fs1.toFixed(2));
+        fb1 = t1.getBBox();
+      }
+      if (fb2.width > 0) {
+        fs2 = fs2 * (targetWidth / fb2.width);
+        t2.setAttribute('font-size', fs2.toFixed(2));
+        fb2 = t2.getBBox();
+      }
 
       t1.setAttribute('x', (-fb1.x).toFixed(2));
       t1.setAttribute('y', (-fb1.y).toFixed(2));
@@ -450,18 +460,25 @@
 
       const totalHeight = fb1.height + gap + fb2.height;
       svgEl.setAttribute('viewBox', `0 0 ${targetWidth} ${totalHeight.toFixed(2)}`);
+      svgEl.setAttribute('preserveAspectRatio', 'xMinYMin meet');
       svgEl.setAttribute('width', targetWidth);
       svgEl.setAttribute('height', totalHeight.toFixed(2));
+      svgEl.style.width = targetWidth + 'px';
+      svgEl.style.height = totalHeight.toFixed(2) + 'px';
     }
 
     function renderAllLogos() {
       document.querySelectorAll('.lesson-logo-svg').forEach(renderBlockyLogo);
     }
 
-    // Wait until Blocky font is fully loaded before measuring getBBox()
-    document.fonts.ready.then(() => {
+    // Explicitly load Blocky before measuring bounding boxes
+    (async function initLogos() {
+      try {
+        await document.fonts.load('100px Blocky');
+      } catch (e) {}
+      await document.fonts.ready;
       renderAllLogos();
-    });
+    })();
 
     // Modal state
     const lessonsData = {
