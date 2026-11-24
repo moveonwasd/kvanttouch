@@ -42,10 +42,6 @@
       --bg-shell: #1A002E;
       --accent-lime: #E2FA00;
       --accent-purple: #9300FF;
-      --card-past: #2A0646;
-      --card-upcoming: #4B0480;
-      --modal-bg: #F4EDFF;
-      --ink-dark: #1B012E;
     }
 
     * {
@@ -57,26 +53,25 @@
       background: linear-gradient(120deg, #B500E6 0%, #5B0A82 42%, #7D7FA3 100%);
       min-height: 100vh;
       margin: 0;
-      padding: 28px 16px;
+      padding: 40px 24px;
       color: #FFFFFF;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
+      align-items: center;
       -webkit-font-smoothing: antialiased;
     }
 
     .app-shell {
       width: 100%;
-      max-width: 680px;
+      max-width: 920px;
       background-color: var(--bg-shell);
-      border-radius: 20px;
-      padding: 28px 34px 40px 34px;
-      box-shadow: 0 24px 60px rgba(10, 0, 20, 0.45);
+      border-radius: 28px;
+      padding: 40px 46px 56px 46px;
+      box-shadow: 0 30px 80px rgba(10, 0, 20, 0.5);
     }
 
     .logo-text {
       color: var(--accent-lime);
-      font-size: 20px;
       line-height: 1;
       letter-spacing: -0.01em;
       user-select: none;
@@ -84,9 +79,8 @@
       align-items: center;
     }
 
-    /* Custom subtle scrollbar inside modal roster */
     .roster-scroll::-webkit-scrollbar {
-      width: 4px;
+      width: 5px;
     }
     .roster-scroll::-webkit-scrollbar-track {
       background: transparent;
@@ -96,20 +90,21 @@
       border-radius: 999px;
     }
 
-    /* Lesson logo SVG container */
     .lesson-logo-svg {
       display: block;
-      width: 58px;
+      width: 78px;
       flex-shrink: 0;
       overflow: hidden;
     }
 
-    @media (max-width: 540px) {
+    @media (max-width: 640px) {
       body {
         padding: 12px;
+        align-items: flex-start;
       }
       .app-shell {
-        padding: 20px 16px 28px 16px;
+        padding: 24px 16px 32px 16px;
+        border-radius: 20px;
       }
     }
   </style>
@@ -118,120 +113,117 @@
 
   <main class="app-shell">
     <!-- Header -->
-    <header class="flex items-center justify-between mb-7">
-      <div class="logo-text gap-[4px]">
-        <span class="text-[21px] font-light leading-none">(</span>
-        <span class="text-[14px] font-normal leading-none">(</span>
-        <span class="text-[20px] leading-none"><span class="font-normal">квант</span><span class="font-bold">touch</span></span>
-        <span class="text-[14px] font-normal leading-none">)</span>
-        <span class="text-[21px] font-light leading-none">)</span>
+    <header class="flex items-center justify-between mb-9 px-4">
+      <div class="logo-text gap-[5px]">
+        <span class="text-[28px] font-light leading-none">(</span>
+        <span class="text-[19px] font-normal leading-none">(</span>
+        <span class="text-[26px] leading-none"><span class="font-normal">квант</span><span class="font-bold">touch</span></span>
+        <span class="text-[19px] font-normal leading-none">)</span>
+        <span class="text-[28px] font-light leading-none">)</span>
       </div>
 
       <div class="flex items-center gap-2 text-white/40">
-        <button onclick="openSettingsModal()" title="Настройки" class="p-1.5 rounded-lg hover:text-white hover:bg-white/5 transition-colors">
-          <i data-lucide="settings" class="w-4 h-4"></i>
+        <button onclick="openSettingsModal()" title="Настройки" class="p-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors">
+          <i data-lucide="settings" class="w-5 h-5"></i>
         </button>
-        <button onclick="openUserscriptModal()" title="Юзерскрипт Tampermonkey" class="p-1.5 rounded-lg hover:text-[#E2FA00] hover:bg-white/5 transition-colors">
-          <i data-lucide="plug" class="w-4 h-4"></i>
+        <button onclick="openUserscriptModal()" title="Юзерскрипт Tampermonkey" class="p-2 rounded-lg hover:text-[#E2FA00] hover:bg-white/5 transition-colors">
+          <i data-lucide="plug" class="w-5 h-5"></i>
         </button>
       </div>
     </header>
 
     <!-- Section Title -->
-    <div class="flex items-center gap-2.5 mb-4">
-      <h1 class="text-[17px] font-normal text-white">Предстоящие занятия</h1>
-      <span class="bg-[#E2FA00] text-[#1A002E] text-[13px] font-medium px-2.5 py-[2px] rounded-[5px] leading-tight">
+    <div class="flex items-center gap-3.5 mb-5 px-4">
+      <h1 class="text-[22px] font-normal text-white">Предстоящие занятия</h1>
+      <span class="bg-[#E2FA00] text-[#1A002E] text-[15px] font-medium px-3.5 py-[3px] rounded-[7px] leading-tight">
         сегодня
       </span>
     </div>
 
     <!-- Lessons List -->
-    <div class="space-y-3.5">
+    <div class="space-y-4">
 
-      <!-- 1. Past Lesson -->
-      <article onclick="openLessonModal('past')" class="bg-[#280644] rounded-[14px] px-5 py-4 flex items-end justify-between cursor-pointer hover:bg-[#310852] transition-colors">
-        <div class="flex items-center gap-5">
-          <!-- Fixed-width Blocky SVG Logo -->
-          <svg class="lesson-logo-svg" data-course="MIDDLE" data-num="12" data-color="#8B6CA6" width="58" height="50"></svg>
+      <!-- 1. Past Lesson (inset mx-4) -->
+      <article onclick="openLessonModal('past')" class="mx-4 bg-[#280644] rounded-[18px] px-7 py-5 flex items-end justify-between cursor-pointer hover:bg-[#310852] transition-colors">
+        <div class="flex items-center gap-6">
+          <svg class="lesson-logo-svg" data-course="MIDDLE" data-num="12" data-color="#8B6CA6" width="78" height="64"></svg>
 
-          <div class="space-y-1">
-            <div class="flex items-center gap-1.5 text-[13px] text-[#8B6CA6]">
-              <i data-lucide="users" class="w-3.5 h-3.5"></i>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2 text-[15px] text-[#8B6CA6]">
+              <i data-lucide="users" class="w-4 h-4"></i>
               <span>Gr. Middle Online #7</span>
             </div>
-            <div class="text-[15px] font-medium text-[#A488BE] leading-snug">
+            <div class="text-[19px] font-medium text-[#A488BE] leading-snug">
               Roblox Studio. Алгоритмы
             </div>
-            <div class="flex items-center gap-1.5 text-[13px] text-[#8B6CA6]">
-              <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+            <div class="flex items-center gap-2 text-[15px] text-[#8B6CA6]">
+              <i data-lucide="clock" class="w-4 h-4"></i>
               <span>16:30 — 18:00</span>
             </div>
           </div>
         </div>
 
-        <div class="flex items-center gap-1.5 text-[13.5px] text-white/85 pb-[1px]">
-          <i data-lucide="check" class="w-4 h-4"></i>
+        <div class="flex items-center gap-2 text-[16px] text-white/85 pb-[2px]">
+          <i data-lucide="check" class="w-5 h-5"></i>
           <span>Проведён</span>
         </div>
       </article>
 
-      <!-- 2. Active Focus Lesson (White Card) -->
-      <article onclick="openLessonModal('active')" class="bg-white text-[#1B012E] rounded-[14px] px-5 pt-4 pb-2.5 cursor-pointer shadow-lg">
-        <div class="flex items-end justify-between mb-3">
-          <div class="flex items-center gap-5">
-            <!-- Fixed-width Blocky SVG Logo -->
-            <svg class="lesson-logo-svg" data-course="НЕЙРО" data-num="05" data-color="#1B012E" width="58" height="50"></svg>
+      <!-- 2. Active Focus Lesson (WIDER: mx-0) -->
+      <article onclick="openLessonModal('active')" class="mx-0 bg-white text-[#1B012E] rounded-[18px] px-8 pt-6 pb-3.5 cursor-pointer shadow-xl">
+        <div class="flex items-end justify-between mb-4">
+          <div class="flex items-center gap-6">
+            <svg class="lesson-logo-svg" data-course="НЕЙРО" data-num="05" data-color="#1B012E" width="78" height="64"></svg>
 
-            <div class="space-y-1">
-              <div class="flex items-center gap-1.5 text-[13px] text-[#614B75]">
-                <i data-lucide="user" class="w-3.5 h-3.5"></i>
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2 text-[15px] text-[#614B75]">
+                <i data-lucide="user" class="w-4 h-4"></i>
                 <span>Иванов Иван</span>
               </div>
-              <div class="text-[15.5px] font-semibold text-[#1B012E] leading-snug">
+              <div class="text-[20px] font-semibold text-[#1B012E] leading-snug">
                 Создание изображений
               </div>
-              <div class="flex items-center gap-1.5 text-[13px] text-[#4C3661]">
-                <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+              <div class="flex items-center gap-2 text-[15px] text-[#4C3661]">
+                <i data-lucide="clock" class="w-4 h-4"></i>
                 <span>18:00 — 19:00</span>
               </div>
             </div>
           </div>
 
-          <div class="flex items-center gap-1.5 text-[13.5px] font-normal text-[#1B012E] pb-[1px]">
-            <i data-lucide="radio" class="w-4 h-4 text-[#4B3461]"></i>
+          <div class="flex items-center gap-2 text-[16px] font-normal text-[#1B012E] pb-[2px]">
+            <i data-lucide="radio" class="w-5 h-5 text-[#4B3461]"></i>
             <span>Осталось 63 мин.</span>
           </div>
         </div>
 
         <!-- Progress Bar inset -->
-        <div class="w-full h-[5px] bg-[#140024] rounded-full overflow-hidden">
+        <div class="w-full h-[7px] bg-[#140024] rounded-full overflow-hidden">
           <div class="h-full bg-[#9B00FF] rounded-full" style="width: 34%;"></div>
         </div>
       </article>
 
       <!-- Break Divider -->
-      <div class="flex items-center justify-center gap-3 py-1 text-[12.5px] text-white/45">
-        <div class="h-[1px] w-28 bg-white/15"></div>
+      <div class="flex items-center justify-center gap-4 py-1.5 text-[15px] text-white/45">
+        <div class="h-[1px] w-36 bg-white/15"></div>
         <span>60 мин.</span>
-        <div class="h-[1px] w-28 bg-white/15"></div>
+        <div class="h-[1px] w-36 bg-white/15"></div>
       </div>
 
-      <!-- 3. Upcoming Lesson -->
-      <article onclick="openLessonModal('upcoming')" class="bg-[#4B0480] rounded-[14px] px-5 py-4 flex items-center cursor-pointer hover:bg-[#570694] transition-colors">
-        <div class="flex items-center gap-5">
-          <!-- Fixed-width Blocky SVG Logo -->
-          <svg class="lesson-logo-svg" data-course="ДИЗАЙН" data-num="12" data-color="#FFFFFF" width="58" height="50"></svg>
+      <!-- 3. Upcoming Lesson (inset mx-4) -->
+      <article onclick="openLessonModal('upcoming')" class="mx-4 bg-[#4B0480] rounded-[18px] px-7 py-5 flex items-center cursor-pointer hover:bg-[#570694] transition-colors">
+        <div class="flex items-center gap-6">
+          <svg class="lesson-logo-svg" data-course="ДИЗАЙН" data-num="12" data-color="#FFFFFF" width="78" height="64"></svg>
 
-          <div class="space-y-1">
-            <div class="flex items-center gap-1.5 text-[13px] text-white/85">
-              <i data-lucide="user" class="w-3.5 h-3.5"></i>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2 text-[15px] text-white/85">
+              <i data-lucide="user" class="w-4 h-4"></i>
               <span>Иванова Мария</span>
             </div>
-            <div class="text-[15.5px] font-semibold text-white leading-snug">
+            <div class="text-[19px] font-semibold text-white leading-snug">
               Векторная графика
             </div>
-            <div class="flex items-center gap-1.5 text-[13px] text-white/80">
-              <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+            <div class="flex items-center gap-2 text-[15px] text-white/80">
+              <i data-lucide="clock" class="w-4 h-4"></i>
               <span>20:00 — 20:30</span>
             </div>
           </div>
@@ -245,63 +237,61 @@
   <!-- MODAL: LESSON CONTROL                                          -->
   <!-- ============================================================== -->
   <div id="lesson-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/65 backdrop-blur-sm" onclick="if(event.target === this) closeLessonModal()">
-    <div class="bg-[#F4EDFF] text-[#1B012E] w-full max-w-[440px] rounded-[24px] p-6 shadow-2xl">
+    <div id="modal-card" class="w-full max-w-[560px] rounded-[28px] p-8 shadow-2xl transition-colors">
       
       <!-- Header Info -->
-      <div class="flex items-center gap-4 mb-4">
-        <svg id="modal-logo-svg" class="lesson-logo-svg" data-course="НЕЙРО" data-num="05" data-color="#1B012E" width="58" height="50"></svg>
+      <div class="flex items-center gap-5 mb-5">
+        <svg id="modal-logo-svg" class="lesson-logo-svg" data-course="НЕЙРО" data-num="05" data-color="#1B012E" width="78" height="64"></svg>
 
-        <div class="space-y-1">
-          <div class="flex items-center gap-1.5 text-[13px] text-[#4C3661]">
-            <i data-lucide="user" class="w-3.5 h-3.5"></i>
+        <div class="space-y-1.5">
+          <div id="modal-student-row" class="flex items-center gap-2 text-[15px]">
+            <i data-lucide="user" class="w-4 h-4"></i>
             <span id="modal-student-header">Иванов Иван</span>
           </div>
-          <div id="modal-lesson-title" class="text-[15.5px] font-semibold text-[#1B012E] leading-snug">
+          <div id="modal-lesson-title" class="text-[20px] font-semibold leading-snug">
             Создание изображений
           </div>
-          <div class="flex items-center gap-1.5 text-[13px] text-[#4C3661]">
-            <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+          <div id="modal-time-row" class="flex items-center gap-2 text-[15px]">
+            <i data-lucide="clock" class="w-4 h-4"></i>
             <span id="modal-lesson-time">18:00 — 19:00</span>
           </div>
         </div>
       </div>
 
       <!-- Progress bar -->
-      <div class="w-full h-[5px] bg-[#140024] rounded-full overflow-hidden mb-3">
+      <div class="w-full h-[7px] bg-[#140024] rounded-full overflow-hidden mb-3.5">
         <div class="h-full bg-[#9B00FF] rounded-full" style="width: 34%;"></div>
       </div>
 
       <!-- Timer -->
-      <div class="flex items-center gap-1.5 text-[13.5px] text-[#1B012E] mb-6">
-        <i data-lucide="radio" class="w-4 h-4 text-[#4B3461]"></i>
+      <div id="modal-timer-row" class="flex items-center gap-2 text-[15px] mb-7">
+        <i data-lucide="radio" class="w-4 h-4"></i>
         <span id="modal-timer-text">Осталось 43 мин.</span>
       </div>
 
       <!-- Student Roster -->
-      <div class="mb-3.5">
-        <div class="text-[14px] font-normal text-black mb-2">Список учеников</div>
-        <div class="border border-[#A78BFA]/70 rounded-[16px] p-3 h-[145px] overflow-y-auto roster-scroll space-y-2">
+      <div class="mb-4">
+        <div id="modal-roster-label" class="text-[16px] font-normal mb-2.5">Список учеников</div>
+        <div id="modal-roster-box" class="border rounded-[18px] p-4 h-[185px] overflow-y-auto roster-scroll space-y-2.5">
           
           <div class="flex items-center justify-between py-1 px-1">
-            <div class="flex items-center gap-2 text-[14px] text-[#1B012E]">
-              <i data-lucide="user" class="w-4 h-4 text-[#4C3661]"></i>
-              <span>Иванов Иван</span>
+            <div class="flex items-center gap-2.5 text-[16px]">
+              <i data-lucide="user" class="w-4 h-4 opacity-70"></i>
+              <span id="modal-roster-name">Иванов Иван</span>
             </div>
 
-            <div class="flex items-center gap-3">
-              <!-- Codecoins -->
-              <div class="flex items-center gap-1 text-[12px] text-[#4C3661] bg-[#E8DCFA] px-2 py-0.5 rounded-md">
-                <button type="button" onclick="adjustCoins('ivan', -5)" class="hover:text-black px-0.5 font-bold">-</button>
-                <span id="coins-ivan" class="font-semibold text-[#1B012E] min-w-[16px] text-center">15</span>
-                <button type="button" onclick="adjustCoins('ivan', 5)" class="hover:text-black px-0.5 font-bold">+</button>
+            <div class="flex items-center gap-4">
+              <!-- Codecoins (-1 / +1) -->
+              <div id="modal-coin-pill" class="flex items-center gap-1.5 text-[14px] px-2.5 py-0.5 rounded-lg">
+                <button type="button" onclick="adjustCoins('ivan', -1)" class="hover:opacity-70 px-1 font-bold">-</button>
+                <span id="coins-ivan" class="font-semibold min-w-[20px] text-center">15</span>
+                <button type="button" onclick="adjustCoins('ivan', 1)" class="hover:opacity-70 px-1 font-bold">+</button>
               </div>
 
-              <!-- Checkbox -->
+              <!-- Radio / Toggle button WITHOUT checkmark (solid fill only) -->
               <label class="relative flex items-center cursor-pointer">
                 <input type="checkbox" checked class="sr-only peer">
-                <div class="w-[18px] h-[18px] rounded-[4px] border border-[#9300FF] peer-checked:bg-[#9300FF] flex items-center justify-center transition-colors">
-                  <i data-lucide="check" class="w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 stroke-[3]"></i>
-                </div>
+                <div class="w-[22px] h-[22px] rounded-[6px] border-2 border-[#9300FF] peer-checked:bg-[#9300FF] transition-colors"></div>
               </label>
             </div>
           </div>
@@ -310,21 +300,21 @@
       </div>
 
       <!-- Bitrix24 Absent Pill -->
-      <div class="mb-8">
-        <button id="absent-btn" onclick="toggleAbsentStatus()" class="bg-[#8D64AA] hover:bg-[#7B5298] text-white text-[13px] font-normal px-4 py-1.5 rounded-full transition-colors">
+      <div class="mb-9">
+        <button id="absent-btn" onclick="toggleAbsentStatus()" class="bg-[#8D64AA] hover:bg-[#7B5298] text-white text-[14px] font-normal px-5 py-2 rounded-full transition-colors">
           <span id="absent-btn-text">Списки отсутствующих поданы</span>
         </button>
       </div>
 
       <!-- Bottom Actions -->
-      <div class="flex items-center justify-end gap-2.5">
-        <button type="button" onclick="closeLessonModal()" class="flex items-center gap-1.5 text-[13px] font-normal text-[#8E00F5] border border-[#8E00F5]/60 hover:bg-[#8E00F5]/10 px-4 py-1.5 rounded-full transition-colors">
-          <i data-lucide="x" class="w-3.5 h-3.5 text-[#5E4A70]"></i>
+      <div class="flex items-center justify-end gap-3">
+        <button id="modal-cancel-btn" type="button" onclick="closeLessonModal()" class="flex items-center gap-2 text-[15px] font-normal border px-5 py-2 rounded-full transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
           <span>Отменить</span>
         </button>
 
-        <button type="button" onclick="conductLesson()" class="flex items-center gap-1.5 text-[13px] font-normal text-white bg-[#9300FF] hover:bg-[#7E00DB] px-5 py-1.5 rounded-full transition-colors">
-          <i data-lucide="check" class="w-3.5 h-3.5"></i>
+        <button type="button" onclick="conductLesson()" class="flex items-center gap-2 text-[15px] font-normal text-white bg-[#9300FF] hover:bg-[#7E00DB] px-6 py-2 rounded-full transition-colors">
+          <i data-lucide="check" class="w-4 h-4"></i>
           <span>Провести</span>
         </button>
       </div>
@@ -336,23 +326,23 @@
   <!-- MODAL: SETTINGS                                                -->
   <!-- ============================================================== -->
   <div id="settings-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/65 backdrop-blur-sm" onclick="if(event.target === this) closeSettingsModal()">
-    <div class="bg-[#1A002E] border border-white/10 text-white w-full max-w-md rounded-[20px] p-6 shadow-2xl">
+    <div class="bg-[#1A002E] border border-white/10 text-white w-full max-w-lg rounded-[24px] p-7 shadow-2xl">
       <div class="flex items-center justify-between mb-5">
-        <h3 class="text-[16px] font-medium">Настройки автоматизации</h3>
+        <h3 class="text-[18px] font-medium">Настройки автоматизации</h3>
         <button onclick="closeSettingsModal()" class="text-white/50 hover:text-white">
-          <i data-lucide="x" class="w-4 h-4"></i>
+          <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <div class="space-y-4 text-[13px]">
+      <div class="space-y-4 text-[14px]">
         <div>
           <label class="block text-white/60 mb-1.5">Вебхук Битрикс24</label>
-          <input type="text" id="setting-b24-webhook" placeholder="https://kvantastica.bitrix24.ru/rest/1/.../im.message.add.json" class="w-full bg-[#120020] border border-white/15 rounded-lg px-3 py-2 text-white placeholder-white/25 focus:outline-none focus:border-[#E2FA00]">
+          <input type="text" id="setting-b24-webhook" placeholder="https://kvantastica.bitrix24.ru/rest/1/.../im.message.add.json" class="w-full bg-[#120020] border border-white/15 rounded-xl px-3.5 py-2.5 text-white placeholder-white/25 focus:outline-none focus:border-[#E2FA00]">
         </div>
 
         <div>
           <label class="block text-white/60 mb-1.5">Комната Контур.Толк</label>
-          <input type="text" id="setting-ktalk-url" placeholder="https://kvantastica.ktalk.ru/room" class="w-full bg-[#120020] border border-white/15 rounded-lg px-3 py-2 text-white placeholder-white/25 focus:outline-none focus:border-[#E2FA00]">
+          <input type="text" id="setting-ktalk-url" placeholder="https://kvantastica.ktalk.ru/room" class="w-full bg-[#120020] border border-white/15 rounded-xl px-3.5 py-2.5 text-white placeholder-white/25 focus:outline-none focus:border-[#E2FA00]">
         </div>
 
         <label class="flex items-center justify-between pt-2 cursor-pointer">
@@ -361,8 +351,8 @@
         </label>
       </div>
 
-      <div class="mt-6 flex justify-end">
-        <button onclick="saveSettings()" class="bg-[#E2FA00] text-[#1A002E] font-medium text-[13px] px-4 py-1.5 rounded-[6px] hover:opacity-90 transition-opacity">
+      <div class="mt-7 flex justify-end">
+        <button onclick="saveSettings()" class="bg-[#E2FA00] text-[#1A002E] font-medium text-[14px] px-5 py-2 rounded-[8px] hover:opacity-90 transition-opacity">
           Сохранить
         </button>
       </div>
@@ -373,20 +363,20 @@
   <!-- MODAL: USERSCRIPT                                              -->
   <!-- ============================================================== -->
   <div id="userscript-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/65 backdrop-blur-sm" onclick="if(event.target === this) closeUserscriptModal()">
-    <div class="bg-[#1A002E] border border-white/10 text-white w-full max-w-md rounded-[20px] p-6 shadow-2xl">
+    <div class="bg-[#1A002E] border border-white/10 text-white w-full max-w-lg rounded-[24px] p-7 shadow-2xl">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-[16px] font-medium">Tampermonkey мост</h3>
+        <h3 class="text-[18px] font-medium">Tampermonkey мост</h3>
         <button onclick="closeUserscriptModal()" class="text-white/50 hover:text-white">
-          <i data-lucide="x" class="w-4 h-4"></i>
+          <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <p class="text-[13px] text-white/70 mb-5 leading-relaxed">
+      <p class="text-[14px] text-white/70 mb-6 leading-relaxed">
         Скрипт связывает этот сайт с AlfaCRM, ERP и Контур.Толком через локальное хранилище браузера.
       </p>
 
       <div class="flex justify-end">
-        <a href="kvanttouch.user.js" class="bg-[#9300FF] hover:bg-[#7E00DB] text-white text-[13px] px-4 py-2 rounded-full transition-colors">
+        <a href="kvanttouch.user.js" class="bg-[#9300FF] hover:bg-[#7E00DB] text-white text-[14px] px-5 py-2.5 rounded-full transition-colors">
           Установить kvanttouch.user.js
         </a>
       </div>
@@ -396,69 +386,78 @@
   <script>
     lucide.createIcons();
 
+    const measureCanvas = document.createElement('canvas');
+    const measureCtx = measureCanvas.getContext('2d');
+
     /**
-     * Renders a two-line Blocky logo inside an SVG where BOTH lines
-     * are scaled proportionally to match the exact target width (58px).
+     * Measures exact painted ink bounding box using Canvas 2D TextMetrics,
+     * eliminating unused font ascent/descent padding so course name and lesson
+     * number stack tightly with equal width.
      */
+    function measureInkBox(str, fontSize) {
+      measureCtx.font = `${fontSize}px Blocky, sans-serif`;
+      const m = measureCtx.measureText(str);
+      const left = m.actualBoundingBoxLeft;
+      const right = m.actualBoundingBoxRight;
+      const ascent = m.actualBoundingBoxAscent;
+      const descent = m.actualBoundingBoxDescent;
+      return {
+        width: left + right,
+        height: ascent + descent,
+        left,
+        ascent
+      };
+    }
+
     function renderBlockyLogo(svgEl) {
       const course = (svgEl.dataset.course || '').toUpperCase();
       const num = svgEl.dataset.num || '';
       const color = svgEl.dataset.color || '#FFFFFF';
-      const targetWidth = 58;
-      const gap = 3;
+      const targetWidth = 78;
+      const gap = 3; // Tight vertical spacing between course & number
       const ns = 'http://www.w3.org/2000/svg';
 
       svgEl.innerHTML = '';
 
-      const createText = (str) => {
+      // Pass 1: measure at 100px
+      const m1 = measureInkBox(course, 100);
+      const m2 = measureInkBox(num, 100);
+      if (m1.width <= 0 || m2.width <= 0) return;
+
+      let fs1 = 100 * (targetWidth / m1.width);
+      let fs2 = 100 * (targetWidth / m2.width);
+
+      // Pass 2: refine at scaled font size
+      let ink1 = measureInkBox(course, fs1);
+      let ink2 = measureInkBox(num, fs2);
+      if (ink1.width > 0) {
+        fs1 = fs1 * (targetWidth / ink1.width);
+        ink1 = measureInkBox(course, fs1);
+      }
+      if (ink2.width > 0) {
+        fs2 = fs2 * (targetWidth / ink2.width);
+        ink2 = measureInkBox(num, fs2);
+      }
+
+      const createText = (str, fs, x, y) => {
         const t = document.createElementNS(ns, 'text');
         t.setAttribute('font-family', 'Blocky');
-        t.setAttribute('font-size', '100');
+        t.setAttribute('font-size', fs.toFixed(2));
         t.setAttribute('fill', color);
-        t.setAttribute('x', '0');
-        t.setAttribute('y', '0');
+        t.setAttribute('x', x.toFixed(2));
+        t.setAttribute('y', y.toFixed(2));
         t.textContent = str;
         svgEl.appendChild(t);
-        return t;
       };
 
-      const t1 = createText(course);
-      const t2 = createText(num);
+      // Position line 1 so top ink edge sits at y=0, left ink edge at x=0
+      createText(course, fs1, ink1.left, ink1.ascent);
 
-      // Measure actual glyph ink bounding boxes at 100px
-      const b1 = t1.getBBox();
-      const b2 = t2.getBBox();
+      // Position line 2 tightly below line 1's actual bottom ink edge + gap
+      const y2 = ink1.height + gap + ink2.ascent;
+      createText(num, fs2, ink2.left, y2);
 
-      if (b1.width === 0 || b2.width === 0) return;
-
-      // Pass 1: scale font-size to match targetWidth
-      let fs1 = 100 * (targetWidth / b1.width);
-      let fs2 = 100 * (targetWidth / b2.width);
-      t1.setAttribute('font-size', fs1.toFixed(2));
-      t2.setAttribute('font-size', fs2.toFixed(2));
-
-      // Pass 2: refine font-size against hinting/kerning at target size
-      let fb1 = t1.getBBox();
-      let fb2 = t2.getBBox();
-      if (fb1.width > 0) {
-        fs1 = fs1 * (targetWidth / fb1.width);
-        t1.setAttribute('font-size', fs1.toFixed(2));
-        fb1 = t1.getBBox();
-      }
-      if (fb2.width > 0) {
-        fs2 = fs2 * (targetWidth / fb2.width);
-        t2.setAttribute('font-size', fs2.toFixed(2));
-        fb2 = t2.getBBox();
-      }
-
-      t1.setAttribute('x', (-fb1.x).toFixed(2));
-      t1.setAttribute('y', (-fb1.y).toFixed(2));
-
-      const y2Offset = fb1.height + gap;
-      t2.setAttribute('x', (-fb2.x).toFixed(2));
-      t2.setAttribute('y', (y2Offset - fb2.y).toFixed(2));
-
-      const totalHeight = fb1.height + gap + fb2.height;
+      const totalHeight = ink1.height + gap + ink2.height;
       svgEl.setAttribute('viewBox', `0 0 ${targetWidth} ${totalHeight.toFixed(2)}`);
       svgEl.setAttribute('preserveAspectRatio', 'xMinYMin meet');
       svgEl.setAttribute('width', targetWidth);
@@ -471,7 +470,6 @@
       document.querySelectorAll('.lesson-logo-svg').forEach(renderBlockyLogo);
     }
 
-    // Explicitly load Blocky before measuring bounding boxes
     (async function initLogos() {
       try {
         await document.fonts.load('100px Blocky');
@@ -480,28 +478,80 @@
       renderAllLogos();
     })();
 
-    // Modal state
+    // Modal state & card color themes matching each card's miniature
     const lessonsData = {
       past: {
         course: 'MIDDLE', num: '12', student: 'Gr. Middle Online #7',
-        title: 'Roblox Studio. Алгоритмы', time: '16:30 — 18:00', timer: 'Урок проведён'
+        title: 'Roblox Studio. Алгоритмы', time: '16:30 — 18:00', timer: 'Урок проведён',
+        theme: {
+          cardBg: '#280644',
+          textPrimary: '#E2D9EC',
+          textMuted: '#A488BE',
+          logoColor: '#8B6CA6',
+          rosterBorder: 'rgba(164, 136, 190, 0.35)',
+          coinBg: 'rgba(255, 255, 255, 0.08)',
+          coinText: '#E2D9EC',
+          cancelClass: 'text-[#CBB5E0] border-[#8B6CA6]/60 hover:bg-white/10'
+        }
       },
       active: {
         course: 'НЕЙРО', num: '05', student: 'Иванов Иван',
-        title: 'Создание изображений', time: '18:00 — 19:00', timer: 'Осталось 43 мин.'
+        title: 'Создание изображений', time: '18:00 — 19:00', timer: 'Осталось 43 мин.',
+        theme: {
+          cardBg: '#F4EDFF',
+          textPrimary: '#1B012E',
+          textMuted: '#4C3661',
+          logoColor: '#1B012E',
+          rosterBorder: 'rgba(167, 139, 250, 0.7)',
+          coinBg: '#E8DCFA',
+          coinText: '#1B012E',
+          cancelClass: 'text-[#8E00F5] border-[#8E00F5]/60 hover:bg-[#8E00F5]/10'
+        }
       },
       upcoming: {
         course: 'ДИЗАЙН', num: '12', student: 'Иванова Мария',
-        title: 'Векторная графика', time: '20:00 — 20:30', timer: 'Начало через 60 мин.'
+        title: 'Векторная графика', time: '20:00 — 20:30', timer: 'Начало через 60 мин.',
+        theme: {
+          cardBg: '#4B0480',
+          textPrimary: '#FFFFFF',
+          textMuted: 'rgba(255, 255, 255, 0.8)',
+          logoColor: '#FFFFFF',
+          rosterBorder: 'rgba(255, 255, 255, 0.3)',
+          coinBg: 'rgba(255, 255, 255, 0.14)',
+          coinText: '#FFFFFF',
+          cancelClass: 'text-white border-white/40 hover:bg-white/10'
+        }
       }
     };
 
     function openLessonModal(key) {
       const data = lessonsData[key] || lessonsData.active;
+      const t = data.theme;
+
+      const card = document.getElementById('modal-card');
+      card.style.backgroundColor = t.cardBg;
+      card.style.color = t.textPrimary;
+
       const modalSvg = document.getElementById('modal-logo-svg');
       modalSvg.dataset.course = data.course;
       modalSvg.dataset.num = data.num;
+      modalSvg.dataset.color = t.logoColor;
+
+      document.getElementById('modal-student-row').style.color = t.textMuted;
+      document.getElementById('modal-time-row').style.color = t.textMuted;
+      document.getElementById('modal-timer-row').style.color = t.textPrimary;
+      document.getElementById('modal-roster-label').style.color = t.textPrimary;
+      document.getElementById('modal-roster-box').style.borderColor = t.rosterBorder;
+
+      const coinPill = document.getElementById('modal-coin-pill');
+      coinPill.style.backgroundColor = t.coinBg;
+      coinPill.style.color = t.coinText;
+
+      const cancelBtn = document.getElementById('modal-cancel-btn');
+      cancelBtn.className = `flex items-center gap-2 text-[15px] font-normal border px-5 py-2 rounded-full transition-colors ${t.cancelClass}`;
+
       document.getElementById('modal-student-header').innerText = data.student;
+      document.getElementById('modal-roster-name').innerText = data.student;
       document.getElementById('modal-lesson-title').innerText = data.title;
       document.getElementById('modal-lesson-time').innerText = data.time;
       document.getElementById('modal-timer-text').innerText = data.timer;
@@ -556,10 +606,10 @@
       const btn = document.getElementById('absent-btn');
       const text = document.getElementById('absent-btn-text');
       if (absentSent) {
-        btn.className = "bg-[#8D64AA] hover:bg-[#7B5298] text-white text-[13px] font-normal px-4 py-1.5 rounded-full transition-colors";
+        btn.className = "bg-[#8D64AA] hover:bg-[#7B5298] text-white text-[14px] font-normal px-5 py-2 rounded-full transition-colors";
         text.innerText = "Списки отсутствующих поданы";
       } else {
-        btn.className = "bg-[#E2FA00] hover:opacity-90 text-[#1A002E] text-[13px] font-medium px-4 py-1.5 rounded-full transition-colors";
+        btn.className = "bg-[#E2FA00] hover:opacity-90 text-[#1A002E] text-[14px] font-medium px-5 py-2 rounded-full transition-colors";
         text.innerText = "Подать списки отсутствующих (1)";
       }
     }
