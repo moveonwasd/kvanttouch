@@ -123,114 +123,38 @@
       </div>
 
       <div class="flex items-center gap-2 text-white/40">
+        <button id="refresh-btn" onclick="requestTodayData()" title="Обновить данные из CRM и ERP" class="p-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors">
+          <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+        </button>
         <button onclick="openSettingsModal()" title="Настройки" class="p-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors">
           <i data-lucide="settings" class="w-5 h-5"></i>
         </button>
-        <button onclick="openUserscriptModal()" title="Юзерскрипт Tampermonkey" class="p-2 rounded-lg hover:text-[#E2FA00] hover:bg-white/5 transition-colors">
+        <button id="plug-btn" onclick="openUserscriptModal()" title="Юзерскрипт Tampermonkey" class="p-2 rounded-lg hover:text-[#E2FA00] hover:bg-white/5 transition-colors relative">
           <i data-lucide="plug" class="w-5 h-5"></i>
         </button>
       </div>
     </header>
 
-    <!-- Section Title -->
-    <div class="flex items-center gap-3.5 mb-5 px-4">
-      <h1 class="text-[22px] font-normal text-white">Предстоящие занятия</h1>
-      <span class="bg-[#E2FA00] text-[#1A002E] text-[15px] font-medium px-3.5 py-[3px] rounded-[7px] leading-tight">
-        сегодня
-      </span>
+    <!-- Status / Auth Notice Bar (hidden when all connected & authorized) -->
+    <div id="status-banner" class="hidden mx-4 mb-5 px-4 py-3 rounded-[14px] bg-white/5 border border-white/10 text-[13.5px] text-white/80 flex flex-wrap items-center justify-between gap-3">
+      <div id="status-banner-text" class="flex items-center gap-2"></div>
+      <div id="status-banner-actions" class="flex items-center gap-2"></div>
     </div>
 
-    <!-- Lessons List -->
-    <div class="space-y-4">
-
-      <!-- 1. Past Lesson (inset mx-4) -->
-      <article onclick="openLessonModal('past')" class="mx-4 bg-[#280644] rounded-[18px] px-7 py-5 flex items-end justify-between cursor-pointer hover:bg-[#310852] transition-colors">
-        <div class="flex items-center gap-6">
-          <svg class="lesson-logo-svg" data-course="MIDDLE" data-num="12" data-color="#8B6CA6" width="78" height="64"></svg>
-
-          <div class="space-y-1.5">
-            <div class="flex items-center gap-2 text-[15px] text-[#8B6CA6]">
-              <i data-lucide="users" class="w-4 h-4"></i>
-              <span>Gr. Middle Online #7</span>
-            </div>
-            <div class="text-[19px] font-medium text-[#A488BE] leading-snug">
-              Roblox Studio. Алгоритмы
-            </div>
-            <div class="flex items-center gap-2 text-[15px] text-[#8B6CA6]">
-              <i data-lucide="clock" class="w-4 h-4"></i>
-              <span>16:30 — 18:00</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2 text-[16px] text-white/85 pb-[2px]">
-          <i data-lucide="check" class="w-5 h-5"></i>
-          <span>Проведён</span>
-        </div>
-      </article>
-
-      <!-- 2. Active Focus Lesson (WIDER: mx-0) -->
-      <article onclick="openLessonModal('active')" class="mx-0 bg-white text-[#1B012E] rounded-[18px] px-8 pt-6 pb-3.5 cursor-pointer shadow-xl">
-        <div class="flex items-end justify-between mb-4">
-          <div class="flex items-center gap-6">
-            <svg class="lesson-logo-svg" data-course="НЕЙРО" data-num="05" data-color="#1B012E" width="78" height="64"></svg>
-
-            <div class="space-y-1.5">
-              <div class="flex items-center gap-2 text-[15px] text-[#614B75]">
-                <i data-lucide="user" class="w-4 h-4"></i>
-                <span>Иванов Иван</span>
-              </div>
-              <div class="text-[20px] font-semibold text-[#1B012E] leading-snug">
-                Создание изображений
-              </div>
-              <div class="flex items-center gap-2 text-[15px] text-[#4C3661]">
-                <i data-lucide="clock" class="w-4 h-4"></i>
-                <span>18:00 — 19:00</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-2 text-[16px] font-normal text-[#1B012E] pb-[2px]">
-            <i data-lucide="radio" class="w-5 h-5 text-[#4B3461]"></i>
-            <span>Осталось 63 мин.</span>
-          </div>
-        </div>
-
-        <!-- Progress Bar inset -->
-        <div class="w-full h-[7px] bg-[#140024] rounded-full overflow-hidden">
-          <div class="h-full bg-[#9B00FF] rounded-full" style="width: 34%;"></div>
-        </div>
-      </article>
-
-      <!-- Break Divider -->
-      <div class="flex items-center justify-center gap-4 py-1.5 text-[15px] text-white/45">
-        <div class="h-[1px] w-36 bg-white/15"></div>
-        <span>60 мин.</span>
-        <div class="h-[1px] w-36 bg-white/15"></div>
+    <!-- Section Title -->
+    <div class="flex items-center justify-between mb-5 px-4">
+      <div class="flex items-center gap-3.5">
+        <h1 class="text-[22px] font-normal text-white">Предстоящие занятия</h1>
+        <span id="date-badge" class="bg-[#E2FA00] text-[#1A002E] text-[15px] font-medium px-3.5 py-[3px] rounded-[7px] leading-tight">
+          сегодня
+        </span>
       </div>
 
-      <!-- 3. Upcoming Lesson (inset mx-4) -->
-      <article onclick="openLessonModal('upcoming')" class="mx-4 bg-[#4B0480] rounded-[18px] px-7 py-5 flex items-center cursor-pointer hover:bg-[#570694] transition-colors">
-        <div class="flex items-center gap-6">
-          <svg class="lesson-logo-svg" data-course="ДИЗАЙН" data-num="12" data-color="#FFFFFF" width="78" height="64"></svg>
-
-          <div class="space-y-1.5">
-            <div class="flex items-center gap-2 text-[15px] text-white/85">
-              <i data-lucide="user" class="w-4 h-4"></i>
-              <span>Иванова Мария</span>
-            </div>
-            <div class="text-[19px] font-semibold text-white leading-snug">
-              Векторная графика
-            </div>
-            <div class="flex items-center gap-2 text-[15px] text-white/80">
-              <i data-lucide="clock" class="w-4 h-4"></i>
-              <span>20:00 — 20:30</span>
-            </div>
-          </div>
-        </div>
-      </article>
-
+      <input id="date-picker" type="date" onchange="onDateChange(this.value)" class="bg-transparent text-white/40 hover:text-white/80 text-[13px] border border-white/10 rounded-lg px-2.5 py-1 focus:outline-none focus:border-[#E2FA00] cursor-pointer" title="Выбрать дату">
     </div>
+
+    <!-- Lessons List (dynamically rendered) -->
+    <div id="lessons-list" class="space-y-4"></div>
   </main>
 
   <!-- ============================================================== -->
@@ -243,67 +167,46 @@
       <div class="flex items-center gap-5 mb-5">
         <svg id="modal-logo-svg" class="lesson-logo-svg" data-course="НЕЙРО" data-num="05" data-color="#1B012E" width="78" height="64"></svg>
 
-        <div class="space-y-1.5">
+        <div class="space-y-1.5 min-w-0 flex-1">
           <div id="modal-student-row" class="flex items-center gap-2 text-[15px]">
-            <i data-lucide="user" class="w-4 h-4"></i>
-            <span id="modal-student-header">Иванов Иван</span>
+            <i id="modal-type-icon" data-lucide="user" class="w-4 h-4 flex-shrink-0"></i>
+            <span id="modal-student-header" class="truncate"></span>
           </div>
-          <div id="modal-lesson-title" class="text-[20px] font-semibold leading-snug">
-            Создание изображений
-          </div>
+          <div id="modal-lesson-title" class="text-[20px] font-semibold leading-snug"></div>
           <div id="modal-time-row" class="flex items-center gap-2 text-[15px]">
-            <i data-lucide="clock" class="w-4 h-4"></i>
-            <span id="modal-lesson-time">18:00 — 19:00</span>
+            <i data-lucide="clock" class="w-4 h-4 flex-shrink-0"></i>
+            <span id="modal-lesson-time"></span>
           </div>
         </div>
       </div>
 
       <!-- Progress bar -->
       <div class="w-full h-[7px] bg-[#140024] rounded-full overflow-hidden mb-3.5">
-        <div class="h-full bg-[#9B00FF] rounded-full" style="width: 34%;"></div>
+        <div id="modal-progress-bar" class="h-full bg-[#9B00FF] rounded-full" style="width: 34%;"></div>
       </div>
 
-      <!-- Timer -->
-      <div id="modal-timer-row" class="flex items-center gap-2 text-[15px] mb-7">
-        <i data-lucide="radio" class="w-4 h-4"></i>
-        <span id="modal-timer-text">Осталось 43 мин.</span>
+      <!-- Timer & Issue Badges -->
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
+        <div id="modal-timer-row" class="flex items-center gap-2 text-[15px]">
+          <i data-lucide="radio" class="w-4 h-4"></i>
+          <span id="modal-timer-text"></span>
+        </div>
+        <div id="modal-flags" class="flex flex-wrap gap-1.5"></div>
       </div>
 
       <!-- Student Roster -->
       <div class="mb-4">
         <div id="modal-roster-label" class="text-[16px] font-normal mb-2.5">Список учеников</div>
-        <div id="modal-roster-box" class="border rounded-[18px] p-4 h-[185px] overflow-y-auto roster-scroll space-y-2.5">
-          
-          <div class="flex items-center justify-between py-1 px-1">
-            <div class="flex items-center gap-2.5 text-[16px]">
-              <i data-lucide="user" class="w-4 h-4 opacity-70"></i>
-              <span id="modal-roster-name">Иванов Иван</span>
-            </div>
-
-            <div class="flex items-center gap-4">
-              <!-- Codecoins (-1 / +1) -->
-              <div id="modal-coin-pill" class="flex items-center gap-1.5 text-[14px] px-2.5 py-0.5 rounded-lg">
-                <button type="button" onclick="adjustCoins('ivan', -1)" class="hover:opacity-70 px-1 font-bold">-</button>
-                <span id="coins-ivan" class="font-semibold min-w-[20px] text-center">15</span>
-                <button type="button" onclick="adjustCoins('ivan', 1)" class="hover:opacity-70 px-1 font-bold">+</button>
-              </div>
-
-              <!-- Radio / Toggle button WITHOUT checkmark (solid fill only) -->
-              <label class="relative flex items-center cursor-pointer">
-                <input type="checkbox" checked class="sr-only peer">
-                <div class="w-[22px] h-[22px] rounded-[6px] border-2 border-[#9300FF] peer-checked:bg-[#9300FF] transition-colors"></div>
-              </label>
-            </div>
-          </div>
-
-        </div>
+        <div id="modal-roster-box" class="border rounded-[18px] p-4 h-[195px] overflow-y-auto roster-scroll space-y-2.5"></div>
       </div>
 
       <!-- Bitrix24 Absent Pill -->
-      <div class="mb-9">
+      <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
         <button id="absent-btn" onclick="toggleAbsentStatus()" class="bg-[#8D64AA] hover:bg-[#7B5298] text-white text-[14px] font-normal px-5 py-2 rounded-full transition-colors">
           <span id="absent-btn-text">Списки отсутствующих поданы</span>
         </button>
+
+        <div id="modal-ext-links" class="flex items-center gap-3 text-[13px] opacity-75"></div>
       </div>
 
       <!-- Bottom Actions -->
@@ -371,41 +274,34 @@
         </button>
       </div>
 
-      <p class="text-[14px] text-white/70 mb-6 leading-relaxed">
-        Скрипт связывает этот сайт с AlfaCRM, ERP и Контур.Толком через локальное хранилище браузера.
+      <p id="userscript-status-text" class="text-[14px] text-white/70 mb-6 leading-relaxed">
+        Скрипт связывает этот сайт с AlfaCRM, ERP и Контур.Толком напрямую из твоего браузера.
       </p>
 
       <div class="flex justify-end">
         <a href="kvanttouch.user.js" class="bg-[#9300FF] hover:bg-[#7E00DB] text-white text-[14px] px-5 py-2.5 rounded-full transition-colors">
-          Установить kvanttouch.user.js
+          Установить / Обновить kvanttouch.user.js
         </a>
       </div>
     </div>
   </div>
 
   <script>
-    lucide.createIcons();
-
+    // =========================================================================
+    // 1. FONT-ACCURATE BLOCKY SVG LOGO ENGINE
+    // =========================================================================
     const measureCanvas = document.createElement('canvas');
     const measureCtx = measureCanvas.getContext('2d');
+    let blockyReady = false;
 
-    /**
-     * Measures exact painted ink bounding box using Canvas 2D TextMetrics,
-     * eliminating unused font ascent/descent padding so course name and lesson
-     * number stack tightly with equal width.
-     */
     function measureInkBox(str, fontSize) {
       measureCtx.font = `${fontSize}px Blocky, sans-serif`;
       const m = measureCtx.measureText(str);
-      const left = m.actualBoundingBoxLeft;
-      const right = m.actualBoundingBoxRight;
-      const ascent = m.actualBoundingBoxAscent;
-      const descent = m.actualBoundingBoxDescent;
       return {
-        width: left + right,
-        height: ascent + descent,
-        left,
-        ascent
+        width: m.actualBoundingBoxLeft + m.actualBoundingBoxRight,
+        height: m.actualBoundingBoxAscent + m.actualBoundingBoxDescent,
+        left: m.actualBoundingBoxLeft,
+        ascent: m.actualBoundingBoxAscent
       };
     }
 
@@ -414,12 +310,11 @@
       const num = svgEl.dataset.num || '';
       const color = svgEl.dataset.color || '#FFFFFF';
       const targetWidth = 78;
-      const gap = 3; // Tight vertical spacing between course & number
+      const gap = 3;
       const ns = 'http://www.w3.org/2000/svg';
 
       svgEl.innerHTML = '';
 
-      // Pass 1: measure at 100px
       const m1 = measureInkBox(course, 100);
       const m2 = measureInkBox(num, 100);
       if (m1.width <= 0 || m2.width <= 0) return;
@@ -427,7 +322,6 @@
       let fs1 = 100 * (targetWidth / m1.width);
       let fs2 = 100 * (targetWidth / m2.width);
 
-      // Pass 2: refine at scaled font size
       let ink1 = measureInkBox(course, fs1);
       let ink2 = measureInkBox(num, fs2);
       if (ink1.width > 0) {
@@ -450,12 +344,8 @@
         svgEl.appendChild(t);
       };
 
-      // Position line 1 so top ink edge sits at y=0, left ink edge at x=0
       createText(course, fs1, ink1.left, ink1.ascent);
-
-      // Position line 2 tightly below line 1's actual bottom ink edge + gap
-      const y2 = ink1.height + gap + ink2.ascent;
-      createText(num, fs2, ink2.left, y2);
+      createText(num, fs2, ink2.left, ink1.height + gap + ink2.ascent);
 
       const totalHeight = ink1.height + gap + ink2.height;
       svgEl.setAttribute('viewBox', `0 0 ${targetWidth} ${totalHeight.toFixed(2)}`);
@@ -467,74 +357,581 @@
     }
 
     function renderAllLogos() {
+      if (!blockyReady) return;
       document.querySelectorAll('.lesson-logo-svg').forEach(renderBlockyLogo);
     }
 
-    (async function initLogos() {
+    (async function initFonts() {
       try {
         await document.fonts.load('100px Blocky');
       } catch (e) {}
       await document.fonts.ready;
+      blockyReady = true;
       renderAllLogos();
     })();
 
-    // Modal state & card color themes matching each card's miniature
-    const lessonsData = {
-      past: {
-        course: 'MIDDLE', num: '12', student: 'Gr. Middle Online #7',
-        title: 'Roblox Studio. Алгоритмы', time: '16:30 — 18:00', timer: 'Урок проведён',
-        theme: {
-          cardBg: '#280644',
-          textPrimary: '#E2D9EC',
-          textMuted: '#A488BE',
-          logoColor: '#8B6CA6',
-          rosterBorder: 'rgba(164, 136, 190, 0.35)',
-          coinBg: 'rgba(255, 255, 255, 0.08)',
-          coinText: '#E2D9EC',
-          cancelClass: 'text-[#CBB5E0] border-[#8B6CA6]/60 hover:bg-white/10'
+    // =========================================================================
+    // 2. DATA MODEL, NORMALIZATION & MERGING (CRM + ERP)
+    // =========================================================================
+    function getTodayISO() {
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
+    let selectedDate = getTodayISO();
+    document.getElementById('date-picker').value = selectedDate;
+
+    function timeToMinutes(hhmm) {
+      if (!hhmm || !hhmm.includes(':')) return 0;
+      const [h, m] = hhmm.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function normalizeName(str) {
+      return (str || '')
+        .toLowerCase()
+        .replace(/^(gr\.?|гр\.?|группа)\s+/i, '')
+        .replace(/[^\p{L}\p{N}]+/gu, ' ')
+        .trim();
+    }
+
+    function extractCourseBadge(courseTitle, subject) {
+      const src = `${courseTitle || ''} ${subject || ''}`;
+      const rules = [
+        [/нейро/i, 'НЕЙРО'],
+        [/дизайн|график/i, 'ДИЗАЙН'],
+        [/roblox|роблокс/i, 'ROBLOX'],
+        [/python|питон/i, 'PYTHON'],
+        [/scratch|скретч/i, 'SCRATCH'],
+        [/unity|юнити/i, 'UNITY'],
+        [/middle|мидл/i, 'MIDDLE'],
+        [/junior|джуниор/i, 'JUNIOR'],
+        [/senior|сеньор/i, 'SENIOR'],
+        [/stencyl/i, 'STENCYL'],
+        [/blender|блендер|3d/i, '3D'],
+        [/minecraft|майнкрафт/i, 'MC'],
+        [/web|веб|html|css|js/i, 'WEB']
+      ];
+      for (const [re, label] of rules) {
+        if (re.test(src)) return label;
+      }
+      const fallback = (courseTitle || subject || 'УРОК').trim().split(/\s+/)[0].toUpperCase();
+      return fallback.slice(0, 8);
+    }
+
+    function parseErpDateStr(item) {
+      if (item.date_start && item.date_start.length >= 16) {
+        return {
+          date: item.date_start.slice(0, 10),
+          time: item.date_start.slice(11, 16)
+        };
+      }
+      if (item.Day && item.Time) {
+        const [dd, mm, yyyy] = item.Day.split('.');
+        return { date: `${yyyy}-${mm}-${dd}`, time: item.Time.slice(0, 5) };
+      }
+      return { date: '', time: '' };
+    }
+
+    function mergeCrmAndErp(crmCollection, erpStudyList, erpArchiveList, dateStr) {
+      // 1. Parse CRM items for target date
+      const crmItems = (crmCollection || [])
+        .filter((c) => c.date === dateStr)
+        .map((c) => {
+          const startTime = (c.start || '').slice(11, 16);
+          const endTime = (c.end || '').slice(11, 16);
+          const customersObj = c.customers || {};
+          const students = Object.entries(customersObj).map(([id, name]) => ({
+            id,
+            name,
+            present: true,
+            coins: 0
+          }));
+          return {
+            crmId: String(c.id),
+            type: String(c.type) === '2' ? 'group' : 'individual',
+            crmStatus: String(c.status), // '1' planned, '2' canceled, '3' conducted
+            title: c.title || '',
+            subject: c.subject || '',
+            startTime,
+            endTime,
+            startMinutes: timeToMinutes(startTime),
+            endMinutes: timeToMinutes(endTime),
+            students,
+            topic: c.topic || '',
+            note: c.note || '',
+            homework: c.homework || ''
+          };
+        });
+
+      // 2. Combine & deduplicate ERP items for target date
+      const erpMap = new Map();
+      [...(erpStudyList || []), ...(erpArchiveList || [])].forEach((e) => {
+        const parsed = parseErpDateStr(e);
+        if (parsed.date !== dateStr) return;
+        const key = String(e.scheduleId || e.id);
+        // Prefer archive/completed over active if both appear, or latest
+        if (!erpMap.has(key) || e.lifecycleState === 'completed') {
+          erpMap.set(key, {
+            erpId: String(e.id),
+            scheduleId: String(e.scheduleId || e.id),
+            url: e.url ? `https://erp.kvantastica.ru${e.url}` : '',
+            lifecycleState: e.lifecycleState || 'scheduled',
+            lifecycleLabel: e.lifecycleLabel || '',
+            groupTitle: e.groupTitle || '',
+            courseTitle: e.courseTitle || '',
+            lessonTitle: e.lessonTitle || '',
+            current: e.current,
+            max: e.max,
+            startTime: parsed.time,
+            startMinutes: timeToMinutes(parsed.time),
+            studentsCount: e.students || 0,
+            meet: e.meet || ''
+          });
         }
+      });
+      const erpItems = Array.from(erpMap.values());
+      const usedErpIds = new Set();
+
+      const merged = [];
+
+      // 3. Match CRM -> ERP
+      for (const crm of crmItems) {
+        const normCrm = normalizeName(crm.title);
+        let bestErp = null;
+        let bestDiff = Infinity;
+
+        for (const erp of erpItems) {
+          if (usedErpIds.has(erp.scheduleId)) continue;
+          const normErp = normalizeName(erp.groupTitle);
+          const namesMatch =
+            normCrm && normErp &&
+            (normCrm === normErp || normCrm.includes(normErp) || normErp.includes(normCrm));
+
+          if (namesMatch) {
+            const diff = Math.abs(crm.startMinutes - erp.startMinutes);
+            if (diff < bestDiff) {
+              bestDiff = diff;
+              bestErp = erp;
+            }
+          }
+        }
+
+        if (bestErp) {
+          usedErpIds.add(bestErp.scheduleId);
+          const timeMismatch = Math.abs(crm.startMinutes - bestErp.startMinutes) > 5;
+          merged.push({
+            id: `crm-${crm.crmId}`,
+            crm,
+            erp: bestErp,
+            type: crm.type,
+            headerName: crm.title || bestErp.groupTitle,
+            courseBadge: extractCourseBadge(bestErp.courseTitle, crm.subject),
+            lessonNum: bestErp.current != null ? String(bestErp.current).padStart(2, '0') : '—',
+            lessonTitle: bestErp.lessonTitle || crm.topic || crm.subject,
+            startTime: crm.startTime,
+            endTime: crm.endTime,
+            startMinutes: crm.startMinutes,
+            endMinutes: crm.endMinutes,
+            students: crm.students,
+            flags: {
+              missingInErp: false,
+              missingInCrm: false,
+              timeMismatch,
+              erpTime: timeMismatch ? bestErp.startTime : null,
+              canceled: crm.crmStatus === '2',
+              conducted: crm.crmStatus === '3'
+            }
+          });
+        } else {
+          merged.push({
+            id: `crm-${crm.crmId}`,
+            crm,
+            erp: null,
+            type: crm.type,
+            headerName: crm.title,
+            courseBadge: extractCourseBadge('', crm.subject),
+            lessonNum: '—',
+            lessonTitle: crm.topic || crm.subject,
+            startTime: crm.startTime,
+            endTime: crm.endTime,
+            startMinutes: crm.startMinutes,
+            endMinutes: crm.endMinutes,
+            students: crm.students,
+            flags: {
+              missingInErp: true,
+              missingInCrm: false,
+              timeMismatch: false,
+              canceled: crm.crmStatus === '2',
+              conducted: crm.crmStatus === '3'
+            }
+          });
+        }
+      }
+
+      // 4. Add remaining unmatched ERP lessons (ghost/missing in CRM)
+      for (const erp of erpItems) {
+        if (usedErpIds.has(erp.scheduleId)) continue;
+        const endMinutes = erp.startMinutes + 60;
+        const pad = (n) => String(n).padStart(2, '0');
+        const endTime = `${pad(Math.floor(endMinutes / 60))}:${pad(endMinutes % 60)}`;
+        merged.push({
+          id: `erp-${erp.scheduleId}`,
+          crm: null,
+          erp,
+          type: erp.studentsCount > 1 ? 'group' : 'individual',
+          headerName: erp.groupTitle,
+          courseBadge: extractCourseBadge(erp.courseTitle, ''),
+          lessonNum: erp.current != null ? String(erp.current).padStart(2, '0') : '—',
+          lessonTitle: erp.lessonTitle || erp.courseTitle,
+          startTime: erp.startTime,
+          endTime,
+          startMinutes: erp.startMinutes,
+          endMinutes,
+          students: [],
+          flags: {
+            missingInErp: false,
+            missingInCrm: true,
+            timeMismatch: false,
+            canceled: false,
+            conducted: erp.lifecycleState === 'completed'
+          }
+        });
+      }
+
+      // 5. Sort chronologically
+      merged.sort((a, b) => a.startMinutes - b.startMinutes);
+
+      // 6. Assign visual state ('past' | 'active' | 'upcoming')
+      const now = new Date();
+      const isToday = dateStr === getTodayISO();
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+      let activeAssigned = false;
+      if (isToday) {
+        // Priority 1: Currently in progress or ERP attention (<= 15m before)
+        for (const item of merged) {
+          if (item.flags.conducted || item.flags.canceled) continue;
+          const inProgress = nowMinutes >= item.startMinutes && nowMinutes <= item.endMinutes;
+          const readyInErp = item.erp && item.erp.lifecycleState === 'attention';
+          if (inProgress || readyInErp) {
+            item.visualState = 'active';
+            activeAssigned = true;
+            break;
+          }
+        }
+        // Priority 2: Next upcoming non-done lesson today
+        if (!activeAssigned) {
+          for (const item of merged) {
+            if (item.flags.conducted || item.flags.canceled) continue;
+            if (item.endMinutes >= nowMinutes) {
+              item.visualState = 'active';
+              activeAssigned = true;
+              break;
+            }
+          }
+        }
+      }
+
+      for (const item of merged) {
+        if (item.visualState === 'active') continue;
+        if (item.flags.conducted || item.flags.canceled || (isToday && item.endMinutes < nowMinutes && item.erp?.lifecycleState === 'completed')) {
+          item.visualState = 'past';
+        } else {
+          item.visualState = 'upcoming';
+        }
+      }
+
+      return merged;
+    }
+
+    // =========================================================================
+    // 3. DEMO FALLBACK DATA (when Tampermonkey isn't connected yet)
+    // =========================================================================
+    const demoLessons = [
+      {
+        id: 'demo-1',
+        type: 'group',
+        visualState: 'past',
+        headerName: 'Gr. Middle Online #7',
+        courseBadge: 'MIDDLE',
+        lessonNum: '12',
+        lessonTitle: 'Roblox Studio. Алгоритмы',
+        startTime: '16:30',
+        endTime: '18:00',
+        startMinutes: 990,
+        endMinutes: 1080,
+        students: [
+          { id: '1', name: 'Иванов Иван', present: true, coins: 12 },
+          { id: '2', name: 'Петров Петр', present: true, coins: 10 }
+        ],
+        flags: { conducted: true }
+      },
+      {
+        id: 'demo-2',
+        type: 'individual',
+        visualState: 'active',
+        headerName: 'Иванов Иван',
+        courseBadge: 'НЕЙРО',
+        lessonNum: '05',
+        lessonTitle: 'Создание изображений',
+        startTime: '18:00',
+        endTime: '19:00',
+        startMinutes: 1080,
+        endMinutes: 1140,
+        students: [
+          { id: '3', name: 'Иванов Иван', present: true, coins: 15 }
+        ],
+        flags: {}
+      },
+      {
+        id: 'demo-3',
+        type: 'individual',
+        visualState: 'upcoming',
+        headerName: 'Иванова Мария',
+        courseBadge: 'ДИЗАЙН',
+        lessonNum: '12',
+        lessonTitle: 'Векторная графика',
+        startTime: '20:00',
+        endTime: '20:30',
+        startMinutes: 1200,
+        endMinutes: 1230,
+        students: [
+          { id: '4', name: 'Иванова Мария', present: true, coins: 0 }
+        ],
+        flags: {}
+      }
+    ];
+
+    let currentLessons = demoLessons;
+    let activeModalLesson = null;
+
+    // =========================================================================
+    // 4. RENDERING LESSONS LIST & MODALS
+    // =========================================================================
+    function getActiveTimerInfo(lesson) {
+      if (selectedDate !== getTodayISO()) {
+        return { text: `${lesson.startTime} — ${lesson.endTime}`, progress: 0 };
+      }
+      const now = new Date();
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+
+      if (nowMin >= lesson.startMinutes && nowMin <= lesson.endMinutes) {
+        const rem = Math.max(0, lesson.endMinutes - nowMin);
+        const dur = Math.max(1, lesson.endMinutes - lesson.startMinutes);
+        const pct = Math.min(100, Math.max(4, Math.round(((nowMin - lesson.startMinutes) / dur) * 100)));
+        return { text: `Осталось ${rem} мин.`, progress: pct };
+      }
+      if (nowMin < lesson.startMinutes) {
+        const wait = lesson.startMinutes - nowMin;
+        const text = wait >= 60
+          ? `Через ${Math.floor(wait / 60)} ч ${wait % 60} мин.`
+          : `Через ${wait} мин.`;
+        return { text, progress: 8 };
+      }
+      const over = nowMin - lesson.endMinutes;
+      return { text: `Идёт (+${over} мин.)`, progress: 100 };
+    }
+
+    function renderFlagsHtml(flags, isLightCard) {
+      const tags = [];
+      const badgeClass = isLightCard
+        ? 'bg-[#1B012E]/10 text-[#1B012E]'
+        : 'bg-white/10 text-white/85';
+
+      if (flags.timeMismatch) {
+        tags.push(`<span class="px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-[#E2FA00] text-[#1A002E]">Время ERP: ${flags.erpTime}</span>`);
+      }
+      if (flags.missingInErp && !flags.canceled) {
+        tags.push(`<span class="px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-rose-500/20 text-rose-200 border border-rose-400/30">Нет в ERP</span>`);
+      }
+      if (flags.missingInCrm) {
+        tags.push(`<span class="px-2 py-0.5 rounded-md text-[11.5px] font-medium ${badgeClass}">Только в ERP</span>`);
+      }
+      return tags.join('');
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/[&<>"']/g, (ch) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[ch]));
+    }
+
+    function renderLessons(lessons) {
+      currentLessons = lessons;
+      const container = document.getElementById('lessons-list');
+
+      if (!lessons || lessons.length === 0) {
+        container.innerHTML = `
+          <div class="mx-4 py-12 text-center text-white/50 text-[15px] bg-white/[0.03] rounded-[18px]">
+            На эту дату занятий не найдено
+          </div>
+        `;
+        return;
+      }
+
+      const parts = [];
+
+      lessons.forEach((lesson, idx) => {
+        // Add break divider if gap between prev.end and current.start >= 15 min
+        if (idx > 0) {
+          const prev = lessons[idx - 1];
+          const gapMin = lesson.startMinutes - prev.endMinutes;
+          if (gapMin >= 15) {
+            const gapLabel = gapMin >= 60 && gapMin % 60 === 0
+              ? `${gapMin} мин.`
+              : `${gapMin} мин.`;
+            parts.push(`
+              <div class="flex items-center justify-center gap-4 py-1.5 text-[15px] text-white/45">
+                <div class="h-[1px] w-36 bg-white/15"></div>
+                <span>${gapLabel}</span>
+                <div class="h-[1px] w-36 bg-white/15"></div>
+              </div>
+            `);
+          }
+        }
+
+        const typeIcon = lesson.type === 'group' ? 'users' : 'user';
+        const flagsHtml = renderFlagsHtml(lesson.flags || {}, lesson.visualState === 'active');
+
+        if (lesson.visualState === 'active') {
+          const timerInfo = getActiveTimerInfo(lesson);
+          parts.push(`
+            <article onclick="openLessonModalById('${lesson.id}')" class="mx-0 bg-white text-[#1B012E] rounded-[18px] px-8 pt-6 pb-3.5 cursor-pointer shadow-xl">
+              <div class="flex items-end justify-between mb-4 gap-4">
+                <div class="flex items-center gap-6 min-w-0">
+                  <svg class="lesson-logo-svg" data-course="${escapeHtml(lesson.courseBadge)}" data-num="${escapeHtml(lesson.lessonNum)}" data-color="#1B012E" width="78" height="64"></svg>
+                  <div class="space-y-1.5 min-w-0">
+                    <div class="flex items-center gap-2 text-[15px] text-[#614B75]">
+                      <i data-lucide="${typeIcon}" class="w-4 h-4 flex-shrink-0"></i>
+                      <span class="truncate">${escapeHtml(lesson.headerName)}</span>
+                      ${flagsHtml}
+                    </div>
+                    <div class="text-[20px] font-semibold text-[#1B012E] leading-snug">
+                      ${escapeHtml(lesson.lessonTitle)}
+                    </div>
+                    <div class="flex items-center gap-2 text-[15px] text-[#4C3661]">
+                      <i data-lucide="clock" class="w-4 h-4 flex-shrink-0"></i>
+                      <span>${escapeHtml(lesson.startTime)} — ${escapeHtml(lesson.endTime)}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 text-[16px] font-normal text-[#1B012E] pb-[2px] flex-shrink-0">
+                  <i data-lucide="radio" class="w-5 h-5 text-[#4B3461]"></i>
+                  <span>${escapeHtml(timerInfo.text)}</span>
+                </div>
+              </div>
+              <div class="w-full h-[7px] bg-[#140024] rounded-full overflow-hidden">
+                <div class="h-full bg-[#9B00FF] rounded-full" style="width: ${timerInfo.progress}%;"></div>
+              </div>
+            </article>
+          `);
+        } else if (lesson.visualState === 'past') {
+          const statusLabel = lesson.flags?.canceled ? 'Отменён' : 'Проведён';
+          const statusIcon = lesson.flags?.canceled ? 'x' : 'check';
+          parts.push(`
+            <article onclick="openLessonModalById('${lesson.id}')" class="mx-4 bg-[#280644] rounded-[18px] px-7 py-5 flex items-end justify-between gap-4 cursor-pointer hover:bg-[#310852] transition-colors">
+              <div class="flex items-center gap-6 min-w-0">
+                <svg class="lesson-logo-svg" data-course="${escapeHtml(lesson.courseBadge)}" data-num="${escapeHtml(lesson.lessonNum)}" data-color="#8B6CA6" width="78" height="64"></svg>
+                <div class="space-y-1.5 min-w-0">
+                  <div class="flex items-center gap-2 text-[15px] text-[#8B6CA6]">
+                    <i data-lucide="${typeIcon}" class="w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">${escapeHtml(lesson.headerName)}</span>
+                    ${flagsHtml}
+                  </div>
+                  <div class="text-[19px] font-medium text-[#A488BE] leading-snug">
+                    ${escapeHtml(lesson.lessonTitle)}
+                  </div>
+                  <div class="flex items-center gap-2 text-[15px] text-[#8B6CA6]">
+                    <i data-lucide="clock" class="w-4 h-4 flex-shrink-0"></i>
+                    <span>${escapeHtml(lesson.startTime)} — ${escapeHtml(lesson.endTime)}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 text-[16px] text-white/85 pb-[2px] flex-shrink-0">
+                <i data-lucide="${statusIcon}" class="w-5 h-5"></i>
+                <span>${statusLabel}</span>
+              </div>
+            </article>
+          `);
+        } else {
+          parts.push(`
+            <article onclick="openLessonModalById('${lesson.id}')" class="mx-4 bg-[#4B0480] rounded-[18px] px-7 py-5 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#570694] transition-colors">
+              <div class="flex items-center gap-6 min-w-0">
+                <svg class="lesson-logo-svg" data-course="${escapeHtml(lesson.courseBadge)}" data-num="${escapeHtml(lesson.lessonNum)}" data-color="#FFFFFF" width="78" height="64"></svg>
+                <div class="space-y-1.5 min-w-0">
+                  <div class="flex items-center gap-2 text-[15px] text-white/85">
+                    <i data-lucide="${typeIcon}" class="w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">${escapeHtml(lesson.headerName)}</span>
+                    ${flagsHtml}
+                  </div>
+                  <div class="text-[19px] font-semibold text-white leading-snug">
+                    ${escapeHtml(lesson.lessonTitle)}
+                  </div>
+                  <div class="flex items-center gap-2 text-[15px] text-white/80">
+                    <i data-lucide="clock" class="w-4 h-4 flex-shrink-0"></i>
+                    <span>${escapeHtml(lesson.startTime)} — ${escapeHtml(lesson.endTime)}</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          `);
+        }
+      });
+
+      container.innerHTML = parts.join('');
+      lucide.createIcons();
+      renderAllLogos();
+    }
+
+    // Modal theme map
+    const modalThemes = {
+      past: {
+        cardBg: '#280644',
+        textPrimary: '#E2D9EC',
+        textMuted: '#A488BE',
+        logoColor: '#8B6CA6',
+        rosterBorder: 'rgba(164, 136, 190, 0.35)',
+        coinBg: 'rgba(255, 255, 255, 0.08)',
+        coinText: '#E2D9EC',
+        cancelClass: 'text-[#CBB5E0] border-[#8B6CA6]/60 hover:bg-white/10'
       },
       active: {
-        course: 'НЕЙРО', num: '05', student: 'Иванов Иван',
-        title: 'Создание изображений', time: '18:00 — 19:00', timer: 'Осталось 43 мин.',
-        theme: {
-          cardBg: '#F4EDFF',
-          textPrimary: '#1B012E',
-          textMuted: '#4C3661',
-          logoColor: '#1B012E',
-          rosterBorder: 'rgba(167, 139, 250, 0.7)',
-          coinBg: '#E8DCFA',
-          coinText: '#1B012E',
-          cancelClass: 'text-[#8E00F5] border-[#8E00F5]/60 hover:bg-[#8E00F5]/10'
-        }
+        cardBg: '#F4EDFF',
+        textPrimary: '#1B012E',
+        textMuted: '#4C3661',
+        logoColor: '#1B012E',
+        rosterBorder: 'rgba(167, 139, 250, 0.7)',
+        coinBg: '#E8DCFA',
+        coinText: '#1B012E',
+        cancelClass: 'text-[#8E00F5] border-[#8E00F5]/60 hover:bg-[#8E00F5]/10'
       },
       upcoming: {
-        course: 'ДИЗАЙН', num: '12', student: 'Иванова Мария',
-        title: 'Векторная графика', time: '20:00 — 20:30', timer: 'Начало через 60 мин.',
-        theme: {
-          cardBg: '#4B0480',
-          textPrimary: '#FFFFFF',
-          textMuted: 'rgba(255, 255, 255, 0.8)',
-          logoColor: '#FFFFFF',
-          rosterBorder: 'rgba(255, 255, 255, 0.3)',
-          coinBg: 'rgba(255, 255, 255, 0.14)',
-          coinText: '#FFFFFF',
-          cancelClass: 'text-white border-white/40 hover:bg-white/10'
-        }
+        cardBg: '#4B0480',
+        textPrimary: '#FFFFFF',
+        textMuted: 'rgba(255, 255, 255, 0.8)',
+        logoColor: '#FFFFFF',
+        rosterBorder: 'rgba(255, 255, 255, 0.3)',
+        coinBg: 'rgba(255, 255, 255, 0.14)',
+        coinText: '#FFFFFF',
+        cancelClass: 'text-white border-white/40 hover:bg-white/10'
       }
     };
 
-    function openLessonModal(key) {
-      const data = lessonsData[key] || lessonsData.active;
-      const t = data.theme;
+    function openLessonModalById(id) {
+      const lesson = currentLessons.find((l) => l.id === id);
+      if (!lesson) return;
+      activeModalLesson = lesson;
 
+      const t = modalThemes[lesson.visualState] || modalThemes.active;
       const card = document.getElementById('modal-card');
       card.style.backgroundColor = t.cardBg;
       card.style.color = t.textPrimary;
 
       const modalSvg = document.getElementById('modal-logo-svg');
-      modalSvg.dataset.course = data.course;
-      modalSvg.dataset.num = data.num;
+      modalSvg.dataset.course = lesson.courseBadge;
+      modalSvg.dataset.num = lesson.lessonNum;
       modalSvg.dataset.color = t.logoColor;
 
       document.getElementById('modal-student-row').style.color = t.textMuted;
@@ -543,23 +940,74 @@
       document.getElementById('modal-roster-label').style.color = t.textPrimary;
       document.getElementById('modal-roster-box').style.borderColor = t.rosterBorder;
 
-      const coinPill = document.getElementById('modal-coin-pill');
-      coinPill.style.backgroundColor = t.coinBg;
-      coinPill.style.color = t.coinText;
-
       const cancelBtn = document.getElementById('modal-cancel-btn');
       cancelBtn.className = `flex items-center gap-2 text-[15px] font-normal border px-5 py-2 rounded-full transition-colors ${t.cancelClass}`;
 
-      document.getElementById('modal-student-header').innerText = data.student;
-      document.getElementById('modal-roster-name').innerText = data.student;
-      document.getElementById('modal-lesson-title').innerText = data.title;
-      document.getElementById('modal-lesson-time').innerText = data.time;
-      document.getElementById('modal-timer-text').innerText = data.timer;
+      document.getElementById('modal-student-header').innerText = lesson.headerName;
+      document.getElementById('modal-lesson-title').innerText = lesson.lessonTitle;
+      document.getElementById('modal-lesson-time').innerText = `${lesson.startTime} — ${lesson.endTime}`;
+
+      const typeIconEl = document.getElementById('modal-type-icon');
+      typeIconEl.setAttribute('data-lucide', lesson.type === 'group' ? 'users' : 'user');
+
+      if (lesson.visualState === 'active') {
+        const info = getActiveTimerInfo(lesson);
+        document.getElementById('modal-timer-text').innerText = info.text;
+        document.getElementById('modal-progress-bar').style.width = `${info.progress}%`;
+      } else if (lesson.flags?.canceled) {
+        document.getElementById('modal-timer-text').innerText = lesson.crm?.note ? `Отменён: ${lesson.crm.note}` : 'Урок отменён';
+        document.getElementById('modal-progress-bar').style.width = '0%';
+      } else if (lesson.flags?.conducted) {
+        document.getElementById('modal-timer-text').innerText = 'Урок проведён';
+        document.getElementById('modal-progress-bar').style.width = '100%';
+      } else {
+        document.getElementById('modal-timer-text').innerText = `Запланирован на ${lesson.startTime}`;
+        document.getElementById('modal-progress-bar').style.width = '0%';
+      }
+
+      document.getElementById('modal-flags').innerHTML = renderFlagsHtml(lesson.flags || {}, lesson.visualState === 'active');
+
+      // Render students list
+      const rosterBox = document.getElementById('modal-roster-box');
+      if (!lesson.students || lesson.students.length === 0) {
+        rosterBox.innerHTML = `<div class="h-full flex items-center justify-center text-[14px] opacity-60">Нет списка учеников в CRM</div>`;
+      } else {
+        rosterBox.innerHTML = lesson.students.map((st, sIdx) => `
+          <div class="flex items-center justify-between py-1 px-1">
+            <div class="flex items-center gap-2.5 text-[16px] min-w-0">
+              <i data-lucide="user" class="w-4 h-4 opacity-70 flex-shrink-0"></i>
+              <span class="truncate">${escapeHtml(st.name)}</span>
+            </div>
+            <div class="flex items-center gap-4 flex-shrink-0">
+              <div style="background:${t.coinBg};color:${t.coinText}" class="flex items-center gap-1.5 text-[14px] px-2.5 py-0.5 rounded-lg">
+                <button type="button" onclick="adjustStudentCoins(${sIdx}, -1)" class="hover:opacity-70 px-1 font-bold">-</button>
+                <span id="coins-st-${sIdx}" class="font-semibold min-w-[20px] text-center">${st.coins}</span>
+                <button type="button" onclick="adjustStudentCoins(${sIdx}, 1)" class="hover:opacity-70 px-1 font-bold">+</button>
+              </div>
+              <label class="relative flex items-center cursor-pointer">
+                <input type="checkbox" ${st.present ? 'checked' : ''} onchange="toggleStudentPresent(${sIdx}, this.checked)" class="sr-only peer">
+                <div class="w-[22px] h-[22px] rounded-[6px] border-2 border-[#9300FF] peer-checked:bg-[#9300FF] transition-colors"></div>
+              </label>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // External links to ERP & CRM
+      const links = [];
+      if (lesson.erp?.url) {
+        links.push(`<a href="${lesson.erp.url}" target="_blank" class="underline hover:opacity-100">Открыть в ERP</a>`);
+      }
+      if (lesson.crm?.crmId) {
+        links.push(`<a href="https://codeclassonline.s20.online/teacher/1/calendar/index" target="_blank" class="underline hover:opacity-100">CRM</a>`);
+      }
+      document.getElementById('modal-ext-links').innerHTML = links.join(' · ');
 
       const modal = document.getElementById('lesson-modal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
 
+      lucide.createIcons();
       renderBlockyLogo(modalSvg);
     }
 
@@ -593,11 +1041,17 @@
       m.classList.remove('flex');
     }
 
-    function adjustCoins(id, delta) {
-      const el = document.getElementById('coins-' + id);
-      let val = parseInt(el.innerText, 10) + delta;
-      if (val < 0) val = 0;
-      el.innerText = val;
+    function adjustStudentCoins(sIdx, delta) {
+      if (!activeModalLesson || !activeModalLesson.students[sIdx]) return;
+      const st = activeModalLesson.students[sIdx];
+      st.coins = Math.max(0, st.coins + delta);
+      const el = document.getElementById(`coins-st-${sIdx}`);
+      if (el) el.innerText = st.coins;
+    }
+
+    function toggleStudentPresent(sIdx, checked) {
+      if (!activeModalLesson || !activeModalLesson.students[sIdx]) return;
+      activeModalLesson.students[sIdx].present = checked;
     }
 
     let absentSent = true;
@@ -610,7 +1064,7 @@
         text.innerText = "Списки отсутствующих поданы";
       } else {
         btn.className = "bg-[#E2FA00] hover:opacity-90 text-[#1A002E] text-[14px] font-medium px-5 py-2 rounded-full transition-colors";
-        text.innerText = "Подать списки отсутствующих (1)";
+        text.innerText = "Подать списки отсутствующих";
       }
     }
 
@@ -621,6 +1075,112 @@
     function saveSettings() {
       closeSettingsModal();
     }
+
+    // =========================================================================
+    // 5. TAMPERMONKEY BRIDGE COMMUNICATION
+    // =========================================================================
+    let bridgeConnected = false;
+    let pendingRequestId = 0;
+
+    function showBanner(textHtml, actionsHtml) {
+      const banner = document.getElementById('status-banner');
+      document.getElementById('status-banner-text').innerHTML = textHtml;
+      document.getElementById('status-banner-actions').innerHTML = actionsHtml || '';
+      banner.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function hideBanner() {
+      document.getElementById('status-banner').classList.add('hidden');
+    }
+
+    function onDateChange(val) {
+      if (!val) return;
+      selectedDate = val;
+      const badge = document.getElementById('date-badge');
+      badge.innerText = val === getTodayISO() ? 'сегодня' : val.split('-').reverse().slice(0, 2).join('.');
+      if (bridgeConnected) {
+        requestTodayData();
+      }
+    }
+
+    function requestTodayData() {
+      if (!bridgeConnected) return;
+      pendingRequestId++;
+      const refreshBtn = document.getElementById('refresh-btn');
+      refreshBtn.classList.add('animate-spin');
+
+      window.postMessage({
+        source: 'KVANT_UI',
+        type: 'FETCH_TODAY',
+        date: selectedDate,
+        requestId: pendingRequestId
+      }, '*');
+    }
+
+    window.addEventListener('message', (event) => {
+      if (event.source !== window || !event.data || event.data.source !== 'KVANT_BRIDGE') return;
+      const msg = event.data;
+
+      if (msg.type === 'BRIDGE_READY') {
+        if (!bridgeConnected) {
+          bridgeConnected = true;
+          document.getElementById('plug-btn').classList.add('text-[#E2FA00]');
+          document.getElementById('userscript-status-text').innerText =
+            `Tampermonkey-мост подключён (версия ${msg.version}). Данные загружаются напрямую из AlfaCRM и ERP.`;
+          requestTodayData();
+        }
+      } else if (msg.type === 'TODAY_DATA') {
+        document.getElementById('refresh-btn').classList.remove('animate-spin');
+        const p = msg.payload || {};
+
+        const authLinks = [];
+        if (p.crm && p.crm.authRequired) {
+          authLinks.push(`<a href="https://codeclassonline.s20.online/teacher/1/calendar/index" target="_blank" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-white">Войти в CRM ↗</a>`);
+        }
+        if (p.erpStudy && p.erpStudy.authRequired) {
+          authLinks.push(`<a href="https://erp.kvantastica.ru/admin/teacher-study" target="_blank" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-white">Войти в ERP ↗</a>`);
+        }
+
+        if (authLinks.length > 0) {
+          showBanner(
+            `<span>Требуется вход в систему для загрузки реальных уроков:</span>`,
+            authLinks.join('') + `<button onclick="requestTodayData()" class="bg-[#E2FA00] text-[#1A002E] font-medium px-3 py-1 rounded-lg">Обновить</button>`
+          );
+        } else {
+          hideBanner();
+        }
+
+        const crmList = p.crm?.ok ? (p.crm.data?.collection || []) : [];
+        const erpStudyList = p.erpStudy?.ok ? (p.erpStudy.data?.data || []) : [];
+        const erpArchiveList = p.erpArchive?.ok ? (p.erpArchive.data?.data || []) : [];
+
+        if (p.crm?.ok || p.erpStudy?.ok || p.erpArchive?.ok) {
+          const merged = mergeCrmAndErp(crmList, erpStudyList, erpArchiveList, p.date || selectedDate);
+          renderLessons(merged);
+        }
+      }
+    });
+
+    // Initial render with demo data while checking for Tampermonkey bridge
+    renderLessons(demoLessons);
+
+    // Ping Tampermonkey script briefly on load
+    let pingCount = 0;
+    const pingTimer = setInterval(() => {
+      if (bridgeConnected || pingCount >= 6) {
+        clearInterval(pingTimer);
+        if (!bridgeConnected) {
+          showBanner(
+            `<span>Tampermonkey-скрипт не обнаружен (показан демо-режим).</span>`,
+            `<a href="kvanttouch.user.js" class="bg-[#9300FF] hover:bg-[#7E00DB] text-white px-3.5 py-1 rounded-full">Установить скрипт</a>`
+          );
+        }
+        return;
+      }
+      pingCount++;
+      window.postMessage({ source: 'KVANT_UI', type: 'PING' }, '*');
+    }, 250);
   </script>
 </body>
 </html>
