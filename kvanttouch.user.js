@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ((квантtouch))
 // @namespace    https://moveonwasd.github.io/kvanttouch/
-// @version      1.1.0
+// @version      1.1.1
 // @description  Мост для синхронизации AlfaCRM, ERP Квантастика и Контур.Толк в едином интерфейсе ((квантtouch))
 // @author       Kvantastica
 // @match        https://moveonwasd.github.io/kvanttouch/*
@@ -10,7 +10,7 @@
 // @match        https://*.ktalk.ru/*
 // @connect      codeclassonline.s20.online
 // @connect      erp.kvantastica.ru
-// @connect      *.ktalk.ru
+// @connect      ktalk.ru
 // @grant        GM_xmlhttpRequest
 // @grant        GM_setValue
 // @grant        GM_getValue
@@ -25,49 +25,56 @@
 
     function gmFetchJson(url) {
         return new Promise((resolve) => {
-            GM_xmlhttpRequest({
-                method: 'GET',
-                url: url,
-                headers: {
-                    'Accept': 'application/json, text/plain, */*',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                onload: function (res) {
-                    const finalUrl = res.finalUrl || url;
-                    const text = (res.responseText || '').trim();
+            try {
+                GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: url,
+                    timeout: 12000,
+                    headers: {
+                        'Accept': 'application/json, text/plain, */*',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    onload: function (res) {
+                        const finalUrl = res.finalUrl || url;
+                        const text = (res.responseText || '').trim();
 
-                    // Redirected to login page or returned HTML instead of JSON
-                    if (
-                        finalUrl.includes('/login') ||
-                        finalUrl.includes('/auth') ||
-                        res.status === 401 ||
-                        res.status === 403 ||
-                        text.startsWith('<!DOCTYPE') ||
-                        text.startsWith('<html')
-                    ) {
-                        resolve({ ok: false, authRequired: true, status: res.status, finalUrl });
-                        return;
-                    }
+                        if (
+                            finalUrl.includes('/login') ||
+                            finalUrl.includes('/auth') ||
+                            res.status === 401 ||
+                            res.status === 403 ||
+                            text.startsWith('<!DOCTYPE') ||
+                            text.startsWith('<html')
+                        ) {
+                            resolve({ ok: false, authRequired: true, status: res.status, finalUrl });
+                            return;
+                        }
 
-                    if (res.status < 200 || res.status >= 300) {
-                        resolve({ ok: false, authRequired: false, status: res.status, error: `HTTP ${res.status}` });
-                        return;
-                    }
+                        if (res.status < 200 || res.status >= 300) {
+                            resolve({ ok: false, authRequired: false, status: res.status, error: `HTTP ${res.status}` });
+                            return;
+                        }
 
-                    try {
-                        const json = JSON.parse(text);
-                        resolve({ ok: true, data: json });
-                    } catch (e) {
-                        resolve({ ok: false, authRequired: false, error: 'Invalid JSON response' });
+                        try {
+                            const json = JSON.parse(text);
+                            resolve({ ok: true, data: json });
+                        } catch (e) {
+                            resolve({ ok: false, authRequired: false, error: 'Invalid JSON response' });
+                        }
+                    },
+                    onerror: function () {
+                        resolve({ ok: false, authRequired: false, error: 'Network error' });
+                    },
+                    ontimeout: function () {
+                        resolve({ ok: false, authRequired: false, error: 'Timeout (12s)' });
+                    },
+                    onabort: function () {
+                        resolve({ ok: false, authRequired: false, error: 'Aborted' });
                     }
-                },
-                onerror: function (err) {
-                    resolve({ ok: false, authRequired: false, error: 'Network error' });
-                },
-                ontimeout: function () {
-                    resolve({ ok: false, authRequired: false, error: 'Timeout' });
-                }
-            });
+                });
+            } catch (err) {
+                resolve({ ok: false, authRequired: false, error: String(err) });
+            }
         });
     }
 
@@ -108,16 +115,15 @@
             gmFetchJson(erpArchiveUrl)
         ]);
 
-        // Fetch page 2 of ERP study/archive if page 1 returned items and might span today
-        if (erpStudy.ok && erpStudy.data?.links?.next) {
+        if (erpStudy.ok && erpStudy.data && erpStudy.data.links && erpStudy.data.links.next) {
             const p2 = await gmFetchJson(erpStudy.data.links.next);
-            if (p2.ok && Array.isArray(p2.data?.data)) {
+            if (p2.ok && p2.data && Array.isArray(p2.data.data)) {
                 erpStudy.data.data = erpStudy.data.data.concat(p2.data.data);
             }
         }
-        if (erpArchive.ok && erpArchive.data?.links?.next) {
+        if (erpArchive.ok && erpArchive.data && erpArchive.data.links && erpArchive.data.links.next) {
             const p2 = await gmFetchJson(erpArchive.data.links.next);
-            if (p2.ok && Array.isArray(p2.data?.data)) {
+            if (p2.ok && p2.data && Array.isArray(p2.data.data)) {
                 erpArchive.data.data = erpArchive.data.data.concat(p2.data.data);
             }
         }
@@ -132,32 +138,58 @@
 
     // 1. DASHBOARD (GitHub Pages)
     if (host.includes('github.io')) {
+        console.log('[квантtouch] Мост инициализирован на дашборде');
+
         const announceReady = () => {
             window.postMessage({
                 source: 'KVANT_BRIDGE',
                 type: 'BRIDGE_READY',
-                version: GM_info?.script?.version || '1.1.0'
+                version: (typeof GM_info !== 'undefined' && GM_info.script) ? GM_info.script.version : '1.1.1'
             }, '*');
         };
 
+        // Note: Do NOT check event.source === window because Tampermonkey runs in a sandbox Proxy!
         window.addEventListener('message', async (event) => {
-            if (event.source !== window || !event.data || event.data.source !== 'KVANT_UI') return;
+            if (event.origin !== window.location.origin) return;
+            if (!event.data || event.data.source !== 'KVANT_UI') return;
 
             const msg = event.data;
             if (msg.type === 'PING') {
                 announceReady();
             } else if (msg.type === 'FETCH_TODAY') {
-                const payload = await fetchAllTodayData(msg.date);
-                window.postMessage({
-                    source: 'KVANT_BRIDGE',
-                    type: 'TODAY_DATA',
-                    requestId: msg.requestId,
-                    payload
-                }, '*');
+                console.log('[квантtouch] Запрос данных за', msg.date);
+                try {
+                    const payload = await fetchAllTodayData(msg.date);
+                    console.log('[квантtouch] Ответы получены:', {
+                        crmOk: payload.crm?.ok,
+                        crmAuth: payload.crm?.authRequired,
+                        erpStudyOk: payload.erpStudy?.ok,
+                        erpStudyAuth: payload.erpStudy?.authRequired,
+                        erpArchiveOk: payload.erpArchive?.ok
+                    });
+                    window.postMessage({
+                        source: 'KVANT_BRIDGE',
+                        type: 'TODAY_DATA',
+                        requestId: msg.requestId,
+                        payload
+                    }, '*');
+                } catch (err) {
+                    console.error('[квантtouch] Ошибка загрузки:', err);
+                    window.postMessage({
+                        source: 'KVANT_BRIDGE',
+                        type: 'TODAY_DATA',
+                        requestId: msg.requestId,
+                        payload: {
+                            date: msg.date,
+                            crm: { ok: false, error: String(err) },
+                            erpStudy: { ok: false, error: String(err) },
+                            erpArchive: { ok: false, error: String(err) }
+                        }
+                    }, '*');
+                }
             }
         });
 
-        // Announce immediately on load
         announceReady();
     }
 })();
