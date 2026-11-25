@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ((квантtouch))
 // @namespace    https://moveonwasd.github.io/kvanttouch/
-// @version      1.1.1
+// @version      1.2.0
 // @description  Мост для синхронизации AlfaCRM, ERP Квантастика и Контур.Толк в едином интерфейсе ((квантtouch))
 // @author       Kvantastica
 // @match        https://moveonwasd.github.io/kvanttouch/*
@@ -23,13 +23,14 @@
 
     const host = window.location.hostname;
 
-    function gmFetchJson(url) {
+    function gmFetchJson(url, validateFn) {
         return new Promise((resolve) => {
             try {
                 GM_xmlhttpRequest({
                     method: 'GET',
                     url: url,
                     timeout: 12000,
+                    anonymous: false,
                     headers: {
                         'Accept': 'application/json, text/plain, */*',
                         'X-Requested-With': 'XMLHttpRequest'
@@ -46,85 +47,96 @@
                             text.startsWith('<!DOCTYPE') ||
                             text.startsWith('<html')
                         ) {
-                            resolve({ ok: false, authRequired: true, status: res.status, finalUrl });
+                            resolve({ ok: false, authRequired: true, unreachable: false, status: res.status, finalUrl });
                             return;
                         }
 
                         if (res.status < 200 || res.status >= 300) {
-                            resolve({ ok: false, authRequired: false, status: res.status, error: `HTTP ${res.status}` });
+                            resolve({ ok: false, authRequired: false, unreachable: true, status: res.status, error: `HTTP ${res.status}` });
                             return;
                         }
 
                         try {
                             const json = JSON.parse(text);
-                            resolve({ ok: true, data: json });
+                            if (validateFn && !validateFn(json)) {
+                                // Some APIs return 200 with an auth error JSON
+                                if (json && (json.message === 'Unauthenticated.' || json.error === 'Unauthorized')) {
+                                    resolve({ ok: false, authRequired: true, unreachable: false, status: 401 });
+                                } else {
+                                    resolve({ ok: false, authRequired: false, unreachable: true, error: 'Неожиданный формат ответа' });
+                                }
+                                return;
+                            }
+                            resolve({ ok: true, authRequired: false, unreachable: false, data: json });
                         } catch (e) {
-                            resolve({ ok: false, authRequired: false, error: 'Invalid JSON response' });
+                            resolve({ ok: false, authRequired: false, unreachable: true, error: 'Ответ не является JSON' });
                         }
                     },
                     onerror: function () {
-                        resolve({ ok: false, authRequired: false, error: 'Network error' });
+                        resolve({ ok: false, authRequired: false, unreachable: true, error: 'Сервер недоступен (ошибка сети)' });
                     },
                     ontimeout: function () {
-                        resolve({ ok: false, authRequired: false, error: 'Timeout (12s)' });
+                        resolve({ ok: false, authRequired: false, unreachable: true, error: 'Таймаут ответа (12с)' });
                     },
                     onabort: function () {
-                        resolve({ ok: false, authRequired: false, error: 'Aborted' });
+                        resolve({ ok: false, authRequired: false, unreachable: true, error: 'Запрос прерван' });
                     }
                 });
             } catch (err) {
-                resolve({ ok: false, authRequired: false, error: String(err) });
+                resolve({ ok: false, authRequired: false, unreachable: true, error: String(err) });
             }
         });
     }
 
-    function getLocalDateStrings() {
-        const now = new Date();
+    function getLocalDateStrings(targetDateStr) {
         const pad = (n) => String(n).padStart(2, '0');
-        const format = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-        const tomorrow = new Date(now);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        return {
-            today: format(now),
-            tomorrow: format(tomorrow)
-        };
+        let d;
+        if (targetDateStr) {
+            const parts = targetDateStr.split('-').map(Number);
+            d = new Date(parts[0], parts[1] - 1, parts[2]);
+        } else {
+            d = new Date();
+        }
+        const today = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        const next = new Date(d);
+        next.setDate(next.getDate() + 1);
+        const tomorrow = `${next.getFullYear()}-${pad(next.getMonth() + 1)}-${pad(next.getDate())}`;
+        return { today, tomorrow };
     }
 
-    async function fetchAllTodayData(targetDateStr) {
-        let today = targetDateStr;
-        let tomorrow;
+    const isCrmValid = (j) => j && Array.isArray(j.collection);
+    const isErpValid = (j) => j && Array.isArray(j.data);
 
-        if (today) {
-            const parts = today.split('-').map(Number);
-            const d = new Date(parts[0], parts[1] - 1, parts[2] + 1);
-            const pad = (n) => String(n).padStart(2, '0');
-            tomorrow = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-        } else {
-            const dates = getLocalDateStrings();
-            today = dates.today;
-            tomorrow = dates.tomorrow;
-        }
+    async function fetchAllTodayData(targetDateStr) {
+        const { today, tomorrow } = getLocalDateStrings(targetDateStr);
 
         const crmUrl = `https://codeclassonline.s20.online/teacher/1/calendar/fetch?start=${today}&end=${tomorrow}&page=1`;
         const erpStudyUrl = `https://erp.kvantastica.ru/api/admin/teacher/study?page=1`;
         const erpArchiveUrl = `https://erp.kvantastica.ru/api/admin/teacher/study/archive?page=1`;
 
         const [crm, erpStudy, erpArchive] = await Promise.all([
-            gmFetchJson(crmUrl),
-            gmFetchJson(erpStudyUrl),
-            gmFetchJson(erpArchiveUrl)
+            gmFetchJson(crmUrl, isCrmValid),
+            gmFetchJson(erpStudyUrl, isErpValid),
+            gmFetchJson(erpArchiveUrl, isErpValid)
         ]);
 
-        if (erpStudy.ok && erpStudy.data && erpStudy.data.links && erpStudy.data.links.next) {
-            const p2 = await gmFetchJson(erpStudy.data.links.next);
-            if (p2.ok && p2.data && Array.isArray(p2.data.data)) {
-                erpStudy.data.data = erpStudy.data.data.concat(p2.data.data);
+        // Paginate ERP study only if page 1 ends on or before target date
+        if (erpStudy.ok && erpStudy.data.links && erpStudy.data.links.next && erpStudy.data.data.length > 0) {
+            const lastItem = erpStudy.data.data[erpStudy.data.data.length - 1];
+            const lastDate = (lastItem.date_start || '').slice(0, 10);
+            if (!lastDate || lastDate <= today) {
+                const p2 = await gmFetchJson(erpStudy.data.links.next, isErpValid);
+                if (p2.ok) erpStudy.data.data = erpStudy.data.data.concat(p2.data.data);
             }
         }
-        if (erpArchive.ok && erpArchive.data && erpArchive.data.links && erpArchive.data.links.next) {
-            const p2 = await gmFetchJson(erpArchive.data.links.next);
-            if (p2.ok && p2.data && Array.isArray(p2.data.data)) {
-                erpArchive.data.data = erpArchive.data.data.concat(p2.data.data);
+
+        // Paginate ERP archive only if page 1 last item is still >= target date
+        if (erpArchive.ok && erpArchive.data.links && erpArchive.data.links.next && erpArchive.data.data.length > 0) {
+            const lastItem = erpArchive.data.data[erpArchive.data.data.length - 1];
+            const lastDate = (lastItem.date_start || '').slice(0, 10);
+            if (!lastDate || lastDate >= today) {
+                const p2 = await gmFetchJson(erpArchive.data.links.next, isErpValid);
+                if (p2.ok) erpArchive.data.data = erpArchive.data.data.concat(p2.data.data);
             }
         }
 
@@ -136,19 +148,15 @@
         };
     }
 
-    // 1. DASHBOARD (GitHub Pages)
     if (host.includes('github.io')) {
-        console.log('[квантtouch] Мост инициализирован на дашборде');
-
         const announceReady = () => {
             window.postMessage({
                 source: 'KVANT_BRIDGE',
                 type: 'BRIDGE_READY',
-                version: (typeof GM_info !== 'undefined' && GM_info.script) ? GM_info.script.version : '1.1.1'
+                version: (typeof GM_info !== 'undefined' && GM_info.script) ? GM_info.script.version : '1.2.0'
             }, '*');
         };
 
-        // Note: Do NOT check event.source === window because Tampermonkey runs in a sandbox Proxy!
         window.addEventListener('message', async (event) => {
             if (event.origin !== window.location.origin) return;
             if (!event.data || event.data.source !== 'KVANT_UI') return;
@@ -157,16 +165,8 @@
             if (msg.type === 'PING') {
                 announceReady();
             } else if (msg.type === 'FETCH_TODAY') {
-                console.log('[квантtouch] Запрос данных за', msg.date);
                 try {
                     const payload = await fetchAllTodayData(msg.date);
-                    console.log('[квантtouch] Ответы получены:', {
-                        crmOk: payload.crm?.ok,
-                        crmAuth: payload.crm?.authRequired,
-                        erpStudyOk: payload.erpStudy?.ok,
-                        erpStudyAuth: payload.erpStudy?.authRequired,
-                        erpArchiveOk: payload.erpArchive?.ok
-                    });
                     window.postMessage({
                         source: 'KVANT_BRIDGE',
                         type: 'TODAY_DATA',
@@ -174,16 +174,15 @@
                         payload
                     }, '*');
                 } catch (err) {
-                    console.error('[квантtouch] Ошибка загрузки:', err);
                     window.postMessage({
                         source: 'KVANT_BRIDGE',
                         type: 'TODAY_DATA',
                         requestId: msg.requestId,
                         payload: {
                             date: msg.date,
-                            crm: { ok: false, error: String(err) },
-                            erpStudy: { ok: false, error: String(err) },
-                            erpArchive: { ok: false, error: String(err) }
+                            crm: { ok: false, unreachable: true, error: String(err) },
+                            erpStudy: { ok: false, unreachable: true, error: String(err) },
+                            erpArchive: { ok: false, unreachable: true, error: String(err) }
                         }
                     }, '*');
                 }
