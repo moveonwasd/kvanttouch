@@ -122,21 +122,35 @@
         <span class="text-[28px] font-light leading-none">)</span>
       </div>
 
-      <div class="flex items-center gap-2 text-white/40">
-        <button id="refresh-btn" onclick="requestTodayData()" title="Обновить данные из CRM и ERP" class="p-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors">
-          <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-        </button>
-        <button onclick="openSettingsModal()" title="Настройки" class="p-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors">
-          <i data-lucide="settings" class="w-5 h-5"></i>
-        </button>
-        <button id="plug-btn" onclick="openUserscriptModal()" title="Юзерскрипт Tampermonkey" class="p-2 rounded-lg hover:text-[#E2FA00] hover:bg-white/5 transition-colors relative">
-          <i data-lucide="plug" class="w-5 h-5"></i>
-        </button>
+      <div class="flex items-center gap-3">
+        <!-- Foolproof system health pills -->
+        <div class="flex items-center gap-2 mr-1">
+          <a id="chip-crm" href="https://codeclassonline.s20.online/teacher/1/calendar/index" target="_blank" class="flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-white/5 text-white/55 border border-white/10 hover:bg-white/10 transition-colors" title="Статус подключения AlfaCRM">
+            <span id="dot-crm" class="w-2 h-2 rounded-full bg-white/30"></span>
+            <span>CRM</span>
+          </a>
+          <a id="chip-erp" href="https://erp.kvantastica.ru/admin/teacher-study" target="_blank" class="flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-white/5 text-white/55 border border-white/10 hover:bg-white/10 transition-colors" title="Статус подключения ERP">
+            <span id="dot-erp" class="w-2 h-2 rounded-full bg-white/30"></span>
+            <span>ERP</span>
+          </a>
+        </div>
+
+        <div class="flex items-center gap-1 text-white/40">
+          <button id="refresh-btn" onclick="requestTodayData()" title="Обновить данные из CRM и ERP" class="p-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors">
+            <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+          </button>
+          <button onclick="openSettingsModal()" title="Настройки" class="p-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+          </button>
+          <button id="plug-btn" onclick="openUserscriptModal()" title="Юзерскрипт Tampermonkey" class="p-2 rounded-lg hover:text-[#E2FA00] hover:bg-white/5 transition-colors">
+            <i data-lucide="plug" class="w-5 h-5"></i>
+          </button>
+        </div>
       </div>
     </header>
 
-    <!-- Status / Auth Notice Bar (hidden when all connected & authorized) -->
-    <div id="status-banner" class="hidden mx-4 mb-5 px-4 py-3 rounded-[14px] bg-white/5 border border-white/10 text-[13.5px] text-white/80 flex flex-wrap items-center justify-between gap-3">
+    <!-- Status / Auth Notice Bar -->
+    <div id="status-banner" class="hidden mx-4 mb-5 px-4 py-3 rounded-[14px] bg-white/5 border border-white/10 text-[13.5px] text-white/85 flex flex-wrap items-center justify-between gap-3">
       <div id="status-banner-text" class="flex items-center gap-2"></div>
       <div id="status-banner-actions" class="flex items-center gap-2"></div>
     </div>
@@ -153,7 +167,7 @@
       <input id="date-picker" type="date" onchange="onDateChange(this.value)" class="bg-transparent text-white/40 hover:text-white/80 text-[13px] border border-white/10 rounded-lg px-2.5 py-1 focus:outline-none focus:border-[#E2FA00] cursor-pointer" title="Выбрать дату">
     </div>
 
-    <!-- Lessons List (dynamically rendered) -->
+    <!-- Lessons List (empty until real data loads via Tampermonkey) -->
     <div id="lessons-list" class="space-y-4"></div>
   </main>
 
@@ -163,9 +177,8 @@
   <div id="lesson-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/65 backdrop-blur-sm" onclick="if(event.target === this) closeLessonModal()">
     <div id="modal-card" class="w-full max-w-[560px] rounded-[28px] p-8 shadow-2xl transition-colors">
       
-      <!-- Header Info -->
       <div class="flex items-center gap-5 mb-5">
-        <svg id="modal-logo-svg" class="lesson-logo-svg" data-course="НЕЙРО" data-num="05" data-color="#1B012E" width="78" height="64"></svg>
+        <svg id="modal-logo-svg" class="lesson-logo-svg" data-course="" data-num="" data-color="#1B012E" width="78" height="64"></svg>
 
         <div class="space-y-1.5 min-w-0 flex-1">
           <div id="modal-student-row" class="flex items-center gap-2 text-[15px]">
@@ -180,12 +193,10 @@
         </div>
       </div>
 
-      <!-- Progress bar -->
       <div class="w-full h-[7px] bg-[#140024] rounded-full overflow-hidden mb-3.5">
-        <div id="modal-progress-bar" class="h-full bg-[#9B00FF] rounded-full" style="width: 34%;"></div>
+        <div id="modal-progress-bar" class="h-full bg-[#9B00FF] rounded-full" style="width: 0%;"></div>
       </div>
 
-      <!-- Timer & Issue Badges -->
       <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
         <div id="modal-timer-row" class="flex items-center gap-2 text-[15px]">
           <i data-lucide="radio" class="w-4 h-4"></i>
@@ -194,13 +205,11 @@
         <div id="modal-flags" class="flex flex-wrap gap-1.5"></div>
       </div>
 
-      <!-- Student Roster -->
       <div class="mb-4">
         <div id="modal-roster-label" class="text-[16px] font-normal mb-2.5">Список учеников</div>
         <div id="modal-roster-box" class="border rounded-[18px] p-4 h-[195px] overflow-y-auto roster-scroll space-y-2.5"></div>
       </div>
 
-      <!-- Bitrix24 Absent Pill -->
       <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
         <button id="absent-btn" onclick="toggleAbsentStatus()" class="bg-[#8D64AA] hover:bg-[#7B5298] text-white text-[14px] font-normal px-5 py-2 rounded-full transition-colors">
           <span id="absent-btn-text">Списки отсутствующих поданы</span>
@@ -209,7 +218,6 @@
         <div id="modal-ext-links" class="flex items-center gap-3 text-[13px] opacity-75"></div>
       </div>
 
-      <!-- Bottom Actions -->
       <div class="flex items-center justify-end gap-3">
         <button id="modal-cancel-btn" type="button" onclick="closeLessonModal()" class="flex items-center gap-2 text-[15px] font-normal border px-5 py-2 rounded-full transition-colors">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -239,6 +247,11 @@
 
       <div class="space-y-4 text-[14px]">
         <div>
+          <label class="block text-white/60 mb-1.5">Сокращения курсов (подстрока из ERP => логотип)</label>
+          <textarea id="setting-course-rules" rows="6" class="w-full bg-[#120020] border border-white/15 rounded-xl px-3.5 py-2.5 text-white text-[13px] font-mono focus:outline-none focus:border-[#E2FA00]"></textarea>
+        </div>
+
+        <div>
           <label class="block text-white/60 mb-1.5">Вебхук Битрикс24</label>
           <input type="text" id="setting-b24-webhook" placeholder="https://kvantastica.bitrix24.ru/rest/1/.../im.message.add.json" class="w-full bg-[#120020] border border-white/15 rounded-xl px-3.5 py-2.5 text-white placeholder-white/25 focus:outline-none focus:border-[#E2FA00]">
         </div>
@@ -248,13 +261,13 @@
           <input type="text" id="setting-ktalk-url" placeholder="https://kvantastica.ktalk.ru/room" class="w-full bg-[#120020] border border-white/15 rounded-xl px-3.5 py-2.5 text-white placeholder-white/25 focus:outline-none focus:border-[#E2FA00]">
         </div>
 
-        <label class="flex items-center justify-between pt-2 cursor-pointer">
+        <label class="flex items-center justify-between pt-1 cursor-pointer">
           <span class="text-white/85">Авто-отправка отсутствующих через 5 мин.</span>
-          <input type="checkbox" checked class="w-4 h-4 accent-[#9300FF]">
+          <input id="setting-auto-absent" type="checkbox" checked class="w-4 h-4 accent-[#9300FF]">
         </label>
       </div>
 
-      <div class="mt-7 flex justify-end">
+      <div class="mt-6 flex justify-end">
         <button onclick="saveSettings()" class="bg-[#E2FA00] text-[#1A002E] font-medium text-[14px] px-5 py-2 rounded-[8px] hover:opacity-90 transition-opacity">
           Сохранить
         </button>
@@ -288,7 +301,49 @@
 
   <script>
     // =========================================================================
-    // 1. FONT-ACCURATE BLOCKY SVG LOGO ENGINE
+    // 1. SETTINGS & COURSE ABBREVIATION RULES
+    // =========================================================================
+    const DEFAULT_COURSE_RULES_TEXT = [
+      'High Online => HIGH',
+      'Middle Online => MIDDLE',
+      'Junior Online => JUNIOR',
+      'Senior Online => SENIOR',
+      'Графический дизайн => ДИЗАЙН',
+      'Нейросети => НЕЙРО',
+      'Python => PYTHON',
+      'Roblox => ROBLOX',
+      'Scratch => SCRATCH',
+      'Unity => UNITY'
+    ].join('\n');
+
+    function loadCourseRulesText() {
+      return localStorage.getItem('kvant_course_rules') || DEFAULT_COURSE_RULES_TEXT;
+    }
+
+    function parseCourseRules() {
+      const text = loadCourseRulesText();
+      return text
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.includes('=>'))
+        .map((line) => {
+          const [pattern, code] = line.split('=>').map((s) => s.trim());
+          return { pattern, code: code.toUpperCase() };
+        })
+        .filter((r) => r.pattern && r.code);
+    }
+
+    function loadSettingsToForm() {
+      document.getElementById('setting-course-rules').value = loadCourseRulesText();
+      document.getElementById('setting-b24-webhook').value = localStorage.getItem('kvant_b24_webhook') || '';
+      document.getElementById('setting-ktalk-url').value = localStorage.getItem('kvant_ktalk_url') || '';
+      const auto = localStorage.getItem('kvant_auto_absent');
+      document.getElementById('setting-auto-absent').checked = auto === null ? true : auto === 'true';
+    }
+    loadSettingsToForm();
+
+    // =========================================================================
+    // 2. FONT-ACCURATE BLOCKY SVG LOGO ENGINE
     // =========================================================================
     const measureCanvas = document.createElement('canvas');
     const measureCtx = measureCanvas.getContext('2d');
@@ -314,6 +369,7 @@
       const ns = 'http://www.w3.org/2000/svg';
 
       svgEl.innerHTML = '';
+      if (!course || !num) return;
 
       const m1 = measureInkBox(course, 100);
       const m2 = measureInkBox(num, 100);
@@ -371,7 +427,7 @@
     })();
 
     // =========================================================================
-    // 2. DATA MODEL, NORMALIZATION & MERGING (CRM + ERP)
+    // 3. DATA MODEL, CLEANING, MATCHING & MERGING (CRM + ERP)
     // =========================================================================
     function getTodayISO() {
       const d = new Date();
@@ -388,36 +444,102 @@
       return h * 60 + m;
     }
 
-    function normalizeName(str) {
-      return (str || '')
+    /**
+     * Extracts clean group/student identity for matching CRM <-> ERP:
+     * - Strips ERP suffixes after // or \\ or / (e.g. "Кулакова София // индив // ...")
+     * - Strips trailing group size like "(6)" (e.g. "Gr.High Online #397 (6)")
+     * - Strips "gr.", "sub.", "гр.", "группа"
+     */
+    function extractMatchTokens(str) {
+      let clean = (str || '')
+        .split(/\/\/|\\\\|\//)[0]
+        .replace(/\(\d+\)\s*$/g, '')
+        .replace(/^(gr\.?|sub\.?|гр\.?|группа)\s*/i, '')
         .toLowerCase()
-        .replace(/^(gr\.?|гр\.?|группа)\s+/i, '')
-        .replace(/[^\p{L}\p{N}]+/gu, ' ')
+        .replace(/[^\p{L}\p{N}#]+/gu, ' ')
         .trim();
+
+      return {
+        clean,
+        tokens: clean ? clean.split(/\s+/) : []
+      };
     }
 
-    function extractCourseBadge(courseTitle, subject) {
-      const src = `${courseTitle || ''} ${subject || ''}`;
-      const rules = [
-        [/нейро/i, 'НЕЙРО'],
-        [/дизайн|график/i, 'ДИЗАЙН'],
-        [/roblox|роблокс/i, 'ROBLOX'],
-        [/python|питон/i, 'PYTHON'],
-        [/scratch|скретч/i, 'SCRATCH'],
-        [/unity|юнити/i, 'UNITY'],
-        [/middle|мидл/i, 'MIDDLE'],
-        [/junior|джуниор/i, 'JUNIOR'],
-        [/senior|сеньор/i, 'SENIOR'],
-        [/stencyl/i, 'STENCYL'],
-        [/blender|блендер|3d/i, '3D'],
-        [/minecraft|майнкрафт/i, 'MC'],
-        [/web|веб|html|css|js/i, 'WEB']
-      ];
-      for (const [re, label] of rules) {
-        if (re.test(src)) return label;
+    function isSameEntity(crmName, erpGroupName) {
+      const a = extractMatchTokens(crmName);
+      const b = extractMatchTokens(erpGroupName);
+      if (!a.clean || !b.clean) return false;
+      if (a.clean === b.clean) return true;
+      if (a.clean.includes(b.clean) || b.clean.includes(a.clean)) return true;
+
+      // Individual students: CRM "Уварова Анна Владимировна" vs ERP "Уварова Анна"
+      if (b.tokens.length >= 2 && a.tokens.length >= 2) {
+        const bInA = b.tokens.every((t) => a.tokens.includes(t));
+        const aInB = a.tokens.every((t) => b.tokens.includes(t));
+        if (bInA || aInB) return true;
       }
-      const fallback = (courseTitle || subject || 'УРОК').trim().split(/\s+/)[0].toUpperCase();
-      return fallback.slice(0, 8);
+      return false;
+    }
+
+    function extractCourseBadge(erp) {
+      if (!erp) return 'НЕТ ERP';
+      const rules = parseCourseRules();
+      const src = `${erp.courseTitle || ''} ${erp.lessonTitle || ''}`.toLowerCase();
+
+      for (const r of rules) {
+        if (src.includes(r.pattern.toLowerCase())) {
+          return r.code;
+        }
+      }
+
+      const firstWord = (erp.courseTitle || erp.lessonTitle || 'УРОК')
+        .replace(/^(отработка|курс)\s+/i, '')
+        .trim()
+        .split(/\s+/)[0]
+        .toUpperCase();
+      return firstWord.slice(0, 8) || 'УРОК';
+    }
+
+    /**
+     * Cleans ERP lesson title per user spec:
+     * - Removes "(83 из 120)"
+     * - Removes course name prefixes ("High Online.", "Middle Online.", etc.)
+     * - Removes "Урок №22." / "Урок 22." while keeping "Модуль 3." and the topic
+     */
+    function cleanErpLessonTitle(erp) {
+      if (!erp) return null;
+      let t = (erp.lessonTitle || '').trim();
+      if (!t) return erp.courseTitle || 'Без названия';
+
+      // Strip leading "(83 из 120)"
+      t = t.replace(/^\(\s*\d+\s+из\s+\d+\s*\)\s*/i, '');
+
+      // Strip "Отработка " prefix if present before course name
+      t = t.replace(/^Отработка\s+/i, '');
+
+      // Strip course name prefixes (configured rules + courseTitle base)
+      const rules = parseCourseRules();
+      const prefixes = rules.map((r) => r.pattern);
+      if (erp.courseTitle) {
+        const baseCourse = erp.courseTitle
+          .replace(/\s*(Квантастика|Онлайн\s*КК|Онлайн)\s*$/i, '')
+          .trim();
+        if (baseCourse) prefixes.unshift(baseCourse);
+        prefixes.unshift(erp.courseTitle);
+      }
+
+      for (const p of prefixes) {
+        if (!p) continue;
+        const escaped = p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = new RegExp(`^${escaped}[\\s.:,-]*`, 'i');
+        t = t.replace(re, '');
+      }
+
+      // Strip "Урок №22." / "Урок 22." anywhere (preserving "Модуль 3." before it)
+      t = t.replace(/Урок\s*№?\s*\d+\s*[.:,-]*\s*/gi, '');
+
+      t = t.replace(/^\s*[.:,-]+\s*/, '').trim();
+      return t || erp.lessonTitle;
     }
 
     function parseErpDateStr(item) {
@@ -435,6 +557,9 @@
     }
 
     function mergeCrmAndErp(crmCollection, erpStudyList, erpArchiveList, dateStr) {
+      const todayISO = getTodayISO();
+      const isViewingToday = dateStr === todayISO;
+
       // 1. Parse CRM items for target date
       const crmItems = (crmCollection || [])
         .filter((c) => c.date === dateStr)
@@ -451,7 +576,7 @@
           return {
             crmId: String(c.id),
             type: String(c.type) === '2' ? 'group' : 'individual',
-            crmStatus: String(c.status), // '1' planned, '2' canceled, '3' conducted
+            crmStatus: String(c.status),
             title: c.title || '',
             subject: c.subject || '',
             startTime,
@@ -460,56 +585,62 @@
             endMinutes: timeToMinutes(endTime),
             students,
             topic: c.topic || '',
-            note: c.note || '',
-            homework: c.homework || ''
+            note: c.note || ''
           };
         });
 
-      // 2. Combine & deduplicate ERP items for target date
+      // 2. Collect ERP items:
+      //    - All items from study + archive for dateStr
+      //    - PLUS when viewing today, any unclosed/active items in /study from earlier dates (stale junk in ERP)
       const erpMap = new Map();
-      [...(erpStudyList || []), ...(erpArchiveList || [])].forEach((e) => {
+      const registerErp = (e, fromArchive) => {
         const parsed = parseErpDateStr(e);
-        if (parsed.date !== dateStr) return;
+        if (!parsed.date) return;
+
+        const isTargetDate = parsed.date === dateStr;
+        const isStaleActive = isViewingToday && !fromArchive && parsed.date < dateStr;
+        if (!isTargetDate && !isStaleActive) return;
+
         const key = String(e.scheduleId || e.id);
-        // Prefer archive/completed over active if both appear, or latest
-        if (!erpMap.has(key) || e.lifecycleState === 'completed') {
+        if (!erpMap.has(key) || fromArchive) {
           erpMap.set(key, {
             erpId: String(e.id),
             scheduleId: String(e.scheduleId || e.id),
-            url: e.url ? `https://erp.kvantastica.ru${e.url}` : '',
-            lifecycleState: e.lifecycleState || 'scheduled',
+            url: e.url ? `https://erp.kvantastica.ru${e.url}` : `https://erp.kvantastica.ru/admin/teacher-study/${e.scheduleId || e.id}`,
+            lifecycleState: e.lifecycleState || (fromArchive ? 'completed' : 'scheduled'),
             lifecycleLabel: e.lifecycleLabel || '',
             groupTitle: e.groupTitle || '',
             courseTitle: e.courseTitle || '',
             lessonTitle: e.lessonTitle || '',
             current: e.current,
             max: e.max,
+            date: parsed.date,
+            isStaleDate: isStaleActive,
             startTime: parsed.time,
             startMinutes: timeToMinutes(parsed.time),
             studentsCount: e.students || 0,
             meet: e.meet || ''
           });
         }
-      });
+      };
+
+      (erpStudyList || []).forEach((e) => registerErp(e, false));
+      (erpArchiveList || []).forEach((e) => registerErp(e, true));
+
       const erpItems = Array.from(erpMap.values());
       const usedErpIds = new Set();
-
       const merged = [];
 
-      // 3. Match CRM -> ERP
+      // 3. Match CRM -> ERP (preferring same date first, then closest time)
       for (const crm of crmItems) {
-        const normCrm = normalizeName(crm.title);
         let bestErp = null;
         let bestDiff = Infinity;
 
         for (const erp of erpItems) {
           if (usedErpIds.has(erp.scheduleId)) continue;
-          const normErp = normalizeName(erp.groupTitle);
-          const namesMatch =
-            normCrm && normErp &&
-            (normCrm === normErp || normCrm.includes(normErp) || normErp.includes(normCrm));
+          if (erp.date !== dateStr) continue;
 
-          if (namesMatch) {
+          if (isSameEntity(crm.title, erp.groupTitle)) {
             const diff = Math.abs(crm.startMinutes - erp.startMinutes);
             if (diff < bestDiff) {
               bestDiff = diff;
@@ -527,9 +658,9 @@
             erp: bestErp,
             type: crm.type,
             headerName: crm.title || bestErp.groupTitle,
-            courseBadge: extractCourseBadge(bestErp.courseTitle, crm.subject),
+            courseBadge: extractCourseBadge(bestErp),
             lessonNum: bestErp.current != null ? String(bestErp.current).padStart(2, '0') : '—',
-            lessonTitle: bestErp.lessonTitle || crm.topic || crm.subject,
+            lessonTitle: cleanErpLessonTitle(bestErp),
             startTime: crm.startTime,
             endTime: crm.endTime,
             startMinutes: crm.startMinutes,
@@ -551,9 +682,9 @@
             erp: null,
             type: crm.type,
             headerName: crm.title,
-            courseBadge: extractCourseBadge('', crm.subject),
+            courseBadge: 'НЕТ ERP',
             lessonNum: '—',
-            lessonTitle: crm.topic || crm.subject,
+            lessonTitle: crm.topic || 'Нет урока в ERP',
             startTime: crm.startTime,
             endTime: crm.endTime,
             startMinutes: crm.startMinutes,
@@ -570,29 +701,32 @@
         }
       }
 
-      // 4. Add remaining unmatched ERP lessons (ghost/missing in CRM)
+      // 4. Add remaining unmatched ERP lessons (junk / phantom lessons in ERP)
       for (const erp of erpItems) {
         if (usedErpIds.has(erp.scheduleId)) continue;
         const endMinutes = erp.startMinutes + 60;
         const pad = (n) => String(n).padStart(2, '0');
-        const endTime = `${pad(Math.floor(endMinutes / 60))}:${pad(endMinutes % 60)}`;
+        const endTime = `${pad(Math.floor(endMinutes / 60) % 24)}:${pad(endMinutes % 60)}`;
+        const shortDate = erp.date.split('-').reverse().slice(0, 2).join('.');
+
         merged.push({
           id: `erp-${erp.scheduleId}`,
           crm: null,
           erp,
           type: erp.studentsCount > 1 ? 'group' : 'individual',
-          headerName: erp.groupTitle,
-          courseBadge: extractCourseBadge(erp.courseTitle, ''),
+          headerName: erp.groupTitle || 'Группа не указана',
+          courseBadge: extractCourseBadge(erp),
           lessonNum: erp.current != null ? String(erp.current).padStart(2, '0') : '—',
-          lessonTitle: erp.lessonTitle || erp.courseTitle,
+          lessonTitle: cleanErpLessonTitle(erp),
           startTime: erp.startTime,
           endTime,
-          startMinutes: erp.startMinutes,
+          startMinutes: erp.isStaleDate ? -1 : erp.startMinutes,
           endMinutes,
           students: [],
           flags: {
             missingInErp: false,
             missingInCrm: true,
+            staleDate: erp.isStaleDate ? shortDate : null,
             timeMismatch: false,
             canceled: false,
             conducted: erp.lifecycleState === 'completed'
@@ -600,19 +734,17 @@
         });
       }
 
-      // 5. Sort chronologically
+      // 5. Sort chronologically (stale junk from previous days on top, then by time)
       merged.sort((a, b) => a.startMinutes - b.startMinutes);
 
-      // 6. Assign visual state ('past' | 'active' | 'upcoming')
+      // 6. Visual state assignment
       const now = new Date();
-      const isToday = dateStr === getTodayISO();
       const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
       let activeAssigned = false;
-      if (isToday) {
-        // Priority 1: Currently in progress or ERP attention (<= 15m before)
+      if (isViewingToday) {
         for (const item of merged) {
-          if (item.flags.conducted || item.flags.canceled) continue;
+          if (item.flags.conducted || item.flags.canceled || item.flags.missingInCrm) continue;
           const inProgress = nowMinutes >= item.startMinutes && nowMinutes <= item.endMinutes;
           const readyInErp = item.erp && item.erp.lifecycleState === 'attention';
           if (inProgress || readyInErp) {
@@ -621,10 +753,9 @@
             break;
           }
         }
-        // Priority 2: Next upcoming non-done lesson today
         if (!activeAssigned) {
           for (const item of merged) {
-            if (item.flags.conducted || item.flags.canceled) continue;
+            if (item.flags.conducted || item.flags.canceled || item.flags.missingInCrm) continue;
             if (item.endMinutes >= nowMinutes) {
               item.visualState = 'active';
               activeAssigned = true;
@@ -636,7 +767,7 @@
 
       for (const item of merged) {
         if (item.visualState === 'active') continue;
-        if (item.flags.conducted || item.flags.canceled || (isToday && item.endMinutes < nowMinutes && item.erp?.lifecycleState === 'completed')) {
+        if (item.flags.conducted || item.flags.canceled) {
           item.visualState = 'past';
         } else {
           item.visualState = 'upcoming';
@@ -646,65 +777,7 @@
       return merged;
     }
 
-    // =========================================================================
-    // 3. DEMO FALLBACK DATA (when Tampermonkey isn't connected yet)
-    // =========================================================================
-    const demoLessons = [
-      {
-        id: 'demo-1',
-        type: 'group',
-        visualState: 'past',
-        headerName: 'Gr. Middle Online #7',
-        courseBadge: 'MIDDLE',
-        lessonNum: '12',
-        lessonTitle: 'Roblox Studio. Алгоритмы',
-        startTime: '16:30',
-        endTime: '18:00',
-        startMinutes: 990,
-        endMinutes: 1080,
-        students: [
-          { id: '1', name: 'Иванов Иван', present: true, coins: 12 },
-          { id: '2', name: 'Петров Петр', present: true, coins: 10 }
-        ],
-        flags: { conducted: true }
-      },
-      {
-        id: 'demo-2',
-        type: 'individual',
-        visualState: 'active',
-        headerName: 'Иванов Иван',
-        courseBadge: 'НЕЙРО',
-        lessonNum: '05',
-        lessonTitle: 'Создание изображений',
-        startTime: '18:00',
-        endTime: '19:00',
-        startMinutes: 1080,
-        endMinutes: 1140,
-        students: [
-          { id: '3', name: 'Иванов Иван', present: true, coins: 15 }
-        ],
-        flags: {}
-      },
-      {
-        id: 'demo-3',
-        type: 'individual',
-        visualState: 'upcoming',
-        headerName: 'Иванова Мария',
-        courseBadge: 'ДИЗАЙН',
-        lessonNum: '12',
-        lessonTitle: 'Векторная графика',
-        startTime: '20:00',
-        endTime: '20:30',
-        startMinutes: 1200,
-        endMinutes: 1230,
-        students: [
-          { id: '4', name: 'Иванова Мария', present: true, coins: 0 }
-        ],
-        flags: {}
-      }
-    ];
-
-    let currentLessons = demoLessons;
+    let currentLessons = [];
     let activeModalLesson = null;
 
     // =========================================================================
@@ -736,10 +809,6 @@
 
     function renderFlagsHtml(flags, isLightCard) {
       const tags = [];
-      const badgeClass = isLightCard
-        ? 'bg-[#1B012E]/10 text-[#1B012E]'
-        : 'bg-white/10 text-white/85';
-
       if (flags.timeMismatch) {
         tags.push(`<span class="px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-[#E2FA00] text-[#1A002E]">Время ERP: ${flags.erpTime}</span>`);
       }
@@ -747,7 +816,8 @@
         tags.push(`<span class="px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-rose-500/20 text-rose-200 border border-rose-400/30">Нет в ERP</span>`);
       }
       if (flags.missingInCrm) {
-        tags.push(`<span class="px-2 py-0.5 rounded-md text-[11.5px] font-medium ${badgeClass}">Только в ERP</span>`);
+        const label = flags.staleDate ? `Мусор в ERP (с ${flags.staleDate})` : 'Мусор в ERP (нет в CRM)';
+        tags.push(`<span class="px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-amber-400/20 text-amber-200 border border-amber-300/35">${label}</span>`);
       }
       return tags.join('');
     }
@@ -763,29 +833,22 @@
       const container = document.getElementById('lessons-list');
 
       if (!lessons || lessons.length === 0) {
-        container.innerHTML = `
-          <div class="mx-4 py-12 text-center text-white/50 text-[15px] bg-white/[0.03] rounded-[18px]">
-            На эту дату занятий не найдено
-          </div>
-        `;
+        container.innerHTML = '';
         return;
       }
 
       const parts = [];
 
       lessons.forEach((lesson, idx) => {
-        // Add break divider if gap between prev.end and current.start >= 15 min
-        if (idx > 0) {
+        // Skip break dividers before/after stale ERP-only junk cards
+        if (idx > 0 && !lesson.flags?.missingInCrm && !lessons[idx - 1].flags?.missingInCrm) {
           const prev = lessons[idx - 1];
           const gapMin = lesson.startMinutes - prev.endMinutes;
           if (gapMin >= 15) {
-            const gapLabel = gapMin >= 60 && gapMin % 60 === 0
-              ? `${gapMin} мин.`
-              : `${gapMin} мин.`;
             parts.push(`
               <div class="flex items-center justify-center gap-4 py-1.5 text-[15px] text-white/45">
                 <div class="h-[1px] w-36 bg-white/15"></div>
-                <span>${gapLabel}</span>
+                <span>${gapMin} мин.</span>
                 <div class="h-[1px] w-36 bg-white/15"></div>
               </div>
             `);
@@ -795,7 +858,29 @@
         const typeIcon = lesson.type === 'group' ? 'users' : 'user';
         const flagsHtml = renderFlagsHtml(lesson.flags || {}, lesson.visualState === 'active');
 
-        if (lesson.visualState === 'active') {
+        if (lesson.flags?.missingInCrm) {
+          parts.push(`
+            <article onclick="openLessonModalById('${lesson.id}')" class="mx-4 bg-[#220738] border border-dashed border-amber-400/40 rounded-[18px] px-7 py-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#2B0A47] transition-colors">
+              <div class="flex items-center gap-6 min-w-0">
+                <svg class="lesson-logo-svg" data-course="${escapeHtml(lesson.courseBadge)}" data-num="${escapeHtml(lesson.lessonNum)}" data-color="#FCD34D" width="78" height="64"></svg>
+                <div class="space-y-1.5 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2 text-[15px] text-amber-200/80">
+                    <i data-lucide="${typeIcon}" class="w-4 h-4 flex-shrink-0"></i>
+                    <span class="truncate">${escapeHtml(lesson.headerName)}</span>
+                    ${flagsHtml}
+                  </div>
+                  <div class="text-[18px] font-medium text-white/90 leading-snug">
+                    ${escapeHtml(lesson.lessonTitle)}
+                  </div>
+                  <div class="flex items-center gap-2 text-[14px] text-white/55">
+                    <i data-lucide="clock" class="w-4 h-4 flex-shrink-0"></i>
+                    <span>${lesson.flags.staleDate ? `${lesson.flags.staleDate} в ` : ''}${escapeHtml(lesson.startTime)}</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          `);
+        } else if (lesson.visualState === 'active') {
           const timerInfo = getActiveTimerInfo(lesson);
           parts.push(`
             <article onclick="openLessonModalById('${lesson.id}')" class="mx-0 bg-white text-[#1B012E] rounded-[18px] px-8 pt-6 pb-3.5 cursor-pointer shadow-xl">
@@ -803,7 +888,7 @@
                 <div class="flex items-center gap-6 min-w-0">
                   <svg class="lesson-logo-svg" data-course="${escapeHtml(lesson.courseBadge)}" data-num="${escapeHtml(lesson.lessonNum)}" data-color="#1B012E" width="78" height="64"></svg>
                   <div class="space-y-1.5 min-w-0">
-                    <div class="flex items-center gap-2 text-[15px] text-[#614B75]">
+                    <div class="flex flex-wrap items-center gap-2 text-[15px] text-[#614B75]">
                       <i data-lucide="${typeIcon}" class="w-4 h-4 flex-shrink-0"></i>
                       <span class="truncate">${escapeHtml(lesson.headerName)}</span>
                       ${flagsHtml}
@@ -835,7 +920,7 @@
               <div class="flex items-center gap-6 min-w-0">
                 <svg class="lesson-logo-svg" data-course="${escapeHtml(lesson.courseBadge)}" data-num="${escapeHtml(lesson.lessonNum)}" data-color="#8B6CA6" width="78" height="64"></svg>
                 <div class="space-y-1.5 min-w-0">
-                  <div class="flex items-center gap-2 text-[15px] text-[#8B6CA6]">
+                  <div class="flex flex-wrap items-center gap-2 text-[15px] text-[#8B6CA6]">
                     <i data-lucide="${typeIcon}" class="w-4 h-4 flex-shrink-0"></i>
                     <span class="truncate">${escapeHtml(lesson.headerName)}</span>
                     ${flagsHtml}
@@ -861,7 +946,7 @@
               <div class="flex items-center gap-6 min-w-0">
                 <svg class="lesson-logo-svg" data-course="${escapeHtml(lesson.courseBadge)}" data-num="${escapeHtml(lesson.lessonNum)}" data-color="#FFFFFF" width="78" height="64"></svg>
                 <div class="space-y-1.5 min-w-0">
-                  <div class="flex items-center gap-2 text-[15px] text-white/85">
+                  <div class="flex flex-wrap items-center gap-2 text-[15px] text-white/85">
                     <i data-lucide="${typeIcon}" class="w-4 h-4 flex-shrink-0"></i>
                     <span class="truncate">${escapeHtml(lesson.headerName)}</span>
                     ${flagsHtml}
@@ -885,7 +970,6 @@
       renderAllLogos();
     }
 
-    // Modal theme map
     const modalThemes = {
       past: {
         cardBg: '#280644',
@@ -916,6 +1000,16 @@
         coinBg: 'rgba(255, 255, 255, 0.14)',
         coinText: '#FFFFFF',
         cancelClass: 'text-white border-white/40 hover:bg-white/10'
+      },
+      junk: {
+        cardBg: '#220738',
+        textPrimary: '#FFFFFF',
+        textMuted: '#FCD34D',
+        logoColor: '#FCD34D',
+        rosterBorder: 'rgba(251, 191, 36, 0.35)',
+        coinBg: 'rgba(255, 255, 255, 0.08)',
+        coinText: '#FFFFFF',
+        cancelClass: 'text-amber-200 border-amber-400/50 hover:bg-white/10'
       }
     };
 
@@ -924,7 +1018,8 @@
       if (!lesson) return;
       activeModalLesson = lesson;
 
-      const t = modalThemes[lesson.visualState] || modalThemes.active;
+      const themeKey = lesson.flags?.missingInCrm ? 'junk' : lesson.visualState;
+      const t = modalThemes[themeKey] || modalThemes.active;
       const card = document.getElementById('modal-card');
       card.style.backgroundColor = t.cardBg;
       card.style.color = t.textPrimary;
@@ -945,12 +1040,17 @@
 
       document.getElementById('modal-student-header').innerText = lesson.headerName;
       document.getElementById('modal-lesson-title').innerText = lesson.lessonTitle;
-      document.getElementById('modal-lesson-time').innerText = `${lesson.startTime} — ${lesson.endTime}`;
+      document.getElementById('modal-lesson-time').innerText = lesson.flags?.missingInCrm
+        ? `${lesson.flags.staleDate ? lesson.flags.staleDate + ' · ' : ''}${lesson.startTime}`
+        : `${lesson.startTime} — ${lesson.endTime}`;
 
       const typeIconEl = document.getElementById('modal-type-icon');
       typeIconEl.setAttribute('data-lucide', lesson.type === 'group' ? 'users' : 'user');
 
-      if (lesson.visualState === 'active') {
+      if (lesson.flags?.missingInCrm) {
+        document.getElementById('modal-timer-text').innerText = 'Урок есть в ERP, но отсутствует в CRM';
+        document.getElementById('modal-progress-bar').style.width = '0%';
+      } else if (lesson.visualState === 'active') {
         const info = getActiveTimerInfo(lesson);
         document.getElementById('modal-timer-text').innerText = info.text;
         document.getElementById('modal-progress-bar').style.width = `${info.progress}%`;
@@ -967,7 +1067,6 @@
 
       document.getElementById('modal-flags').innerHTML = renderFlagsHtml(lesson.flags || {}, lesson.visualState === 'active');
 
-      // Render students list
       const rosterBox = document.getElementById('modal-roster-box');
       if (!lesson.students || lesson.students.length === 0) {
         rosterBox.innerHTML = `<div class="h-full flex items-center justify-center text-[14px] opacity-60">Нет списка учеников в CRM</div>`;
@@ -993,7 +1092,6 @@
         `).join('');
       }
 
-      // External links to ERP & CRM
       const links = [];
       if (lesson.erp?.url) {
         links.push(`<a href="${lesson.erp.url}" target="_blank" class="underline hover:opacity-100">Открыть в ERP</a>`);
@@ -1018,6 +1116,7 @@
     }
 
     function openSettingsModal() {
+      loadSettingsToForm();
       const m = document.getElementById('settings-modal');
       m.classList.remove('hidden');
       m.classList.add('flex');
@@ -1073,15 +1172,42 @@
     }
 
     function saveSettings() {
+      localStorage.setItem('kvant_course_rules', document.getElementById('setting-course-rules').value);
+      localStorage.setItem('kvant_b24_webhook', document.getElementById('setting-b24-webhook').value.trim());
+      localStorage.setItem('kvant_ktalk_url', document.getElementById('setting-ktalk-url').value.trim());
+      localStorage.setItem('kvant_auto_absent', String(document.getElementById('setting-auto-absent').checked));
       closeSettingsModal();
+      if (lastRawPayload) {
+        processPayload(lastRawPayload);
+      }
     }
 
     // =========================================================================
-    // 5. TAMPERMONKEY BRIDGE COMMUNICATION
+    // 5. FOOLPROOF TAMPERMONKEY BRIDGE & HEALTH CHECKS
     // =========================================================================
     let bridgeConnected = false;
     let pendingRequestId = 0;
     let loadTimeoutTimer = null;
+    let lastRawPayload = null;
+
+    function setChipStatus(id, state, title) {
+      const chip = document.getElementById(`chip-${id}`);
+      const dot = document.getElementById(`dot-${id}`);
+      chip.title = title || '';
+      if (state === 'ok') {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-emerald-400/10 text-emerald-200 border border-emerald-400/25 hover:bg-emerald-400/20 transition-colors';
+      } else if (state === 'auth') {
+        dot.className = 'w-2 h-2 rounded-full bg-[#E2FA00]';
+        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-[#E2FA00]/15 text-[#E2FA00] border border-[#E2FA00]/40 hover:bg-[#E2FA00]/25 transition-colors';
+      } else if (state === 'error') {
+        dot.className = 'w-2 h-2 rounded-full bg-rose-400';
+        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-200 border border-rose-400/35 hover:bg-rose-500/25 transition-colors';
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-white/30';
+        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-white/5 text-white/55 border border-white/10 hover:bg-white/10 transition-colors';
+      }
+    }
 
     function showBanner(textHtml, actionsHtml) {
       const banner = document.getElementById('status-banner');
@@ -1123,9 +1249,11 @@
       loadTimeoutTimer = setTimeout(() => {
         if (pendingRequestId === reqId) {
           stopSpinner();
+          setChipStatus('crm', 'error', 'Нет ответа от скрипта');
+          setChipStatus('erp', 'error', 'Нет ответа от скрипта');
           showBanner(
-            `<span>Нет ответа от скрипта (проверь, разрешены ли запросы в Tampermonkey и обнови скрипт до 1.1.1).</span>`,
-            `<a href="kvanttouch.user.js" class="bg-[#9300FF] text-white px-3 py-1 rounded-full">Обновить скрипт</a><button onclick="requestTodayData()" class="bg-[#E2FA00] text-[#1A002E] font-medium px-3 py-1 rounded-lg">Повторить</button>`
+            `<span>Нет ответа от скрипта Tampermonkey. Обнови скрипт до последней версии.</span>`,
+            `<a href="kvanttouch.user.js" class="bg-[#9300FF] text-white px-3.5 py-1 rounded-full">Обновить скрипт</a><button onclick="requestTodayData()" class="bg-[#E2FA00] text-[#1A002E] font-medium px-3 py-1 rounded-lg">Повторить</button>`
           );
         }
       }, 15000);
@@ -1136,6 +1264,59 @@
         date: selectedDate,
         requestId: reqId
       }, '*');
+    }
+
+    function processPayload(p) {
+      lastRawPayload = p;
+      const crmOk = Boolean(p.crm?.ok);
+      const crmAuth = Boolean(p.crm?.authRequired);
+      const erpStudyOk = Boolean(p.erpStudy?.ok);
+      const erpArchiveOk = Boolean(p.erpArchive?.ok);
+      const erpAuth = Boolean(p.erpStudy?.authRequired || p.erpArchive?.authRequired);
+      const erpOk = erpStudyOk && erpArchiveOk;
+
+      setChipStatus('crm', crmOk ? 'ok' : (crmAuth ? 'auth' : 'error'), crmOk ? 'CRM подключена' : (crmAuth ? 'Нужен вход в CRM' : (p.crm?.error || 'Ошибка CRM')));
+      setChipStatus('erp', erpOk ? 'ok' : (erpAuth ? 'auth' : 'error'), erpOk ? 'ERP подключена' : (erpAuth ? 'Нужен вход в ERP' : (p.erpStudy?.error || p.erpArchive?.error || 'Ошибка ERP')));
+
+      const issues = [];
+      const actions = [];
+
+      if (!crmOk) {
+        if (crmAuth) {
+          issues.push('Не выполнен вход в AlfaCRM');
+          actions.push(`<a href="https://codeclassonline.s20.online/teacher/1/calendar/index" target="_blank" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-white">Войти в CRM ↗</a>`);
+        } else {
+          issues.push(`AlfaCRM недоступна (${p.crm?.error || 'ошибка'})`);
+        }
+      }
+
+      if (!erpOk) {
+        if (erpAuth) {
+          issues.push('Не выполнен вход в ERP');
+          actions.push(`<a href="https://erp.kvantastica.ru/admin/teacher-study" target="_blank" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-white">Войти в ERP ↗</a>`);
+        } else {
+          const errMsg = p.erpStudy?.error || p.erpArchive?.error || 'ошибка';
+          issues.push(`ERP недоступна (${errMsg})`);
+        }
+      }
+
+      if (issues.length > 0) {
+        actions.push(`<button onclick="requestTodayData()" class="bg-[#E2FA00] text-[#1A002E] font-medium px-3 py-1 rounded-lg">Проверить снова</button>`);
+        showBanner(`<span>${escapeHtml(issues.join(' · '))}</span>`, actions.join(''));
+      } else {
+        hideBanner();
+      }
+
+      const crmList = crmOk ? (p.crm.data.collection || []) : [];
+      const erpStudyList = erpStudyOk ? (p.erpStudy.data.data || []) : [];
+      const erpArchiveList = erpArchiveOk ? (p.erpArchive.data.data || []) : [];
+
+      if (crmOk || erpStudyOk || erpArchiveOk) {
+        const merged = mergeCrmAndErp(crmList, erpStudyList, erpArchiveList, p.date || selectedDate);
+        renderLessons(merged);
+      } else {
+        renderLessons([]);
+      }
     }
 
     window.addEventListener('message', (event) => {
@@ -1153,43 +1334,8 @@
         }
       } else if (msg.type === 'TODAY_DATA') {
         stopSpinner();
-        const p = msg.payload || {};
-
-        const authLinks = [];
-        if (p.crm && p.crm.authRequired) {
-          authLinks.push(`<a href="https://codeclassonline.s20.online/teacher/1/calendar/index" target="_blank" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-white">Войти в CRM ↗</a>`);
-        }
-        if ((p.erpStudy && p.erpStudy.authRequired) || (p.erpArchive && p.erpArchive.authRequired)) {
-          authLinks.push(`<a href="https://erp.kvantastica.ru/admin/teacher-study" target="_blank" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-white">Войти в ERP ↗</a>`);
-        }
-
-        const errors = [];
-        if (p.crm && !p.crm.ok && !p.crm.authRequired) errors.push(`CRM: ${p.crm.error || p.crm.status}`);
-        if (p.erpStudy && !p.erpStudy.ok && !p.erpStudy.authRequired) errors.push(`ERP: ${p.erpStudy.error || p.erpStudy.status}`);
-
-        if (authLinks.length > 0) {
-          showBanner(
-            `<span>Требуется вход в систему для загрузки реальных уроков:</span>`,
-            authLinks.join('') + `<button onclick="requestTodayData()" class="bg-[#E2FA00] text-[#1A002E] font-medium px-3 py-1 rounded-lg">Обновить</button>`
-          );
-        } else if (errors.length > 0) {
-          showBanner(
-            `<span>Ошибка загрузки (${escapeHtml(errors.join('; '))})</span>`,
-            `<button onclick="requestTodayData()" class="bg-[#E2FA00] text-[#1A002E] font-medium px-3 py-1 rounded-lg">Повторить</button>`
-          );
-        } else {
-          hideBanner();
-        }
-
         try {
-          const crmList = p.crm?.ok ? (p.crm.data?.collection || []) : [];
-          const erpStudyList = p.erpStudy?.ok ? (p.erpStudy.data?.data || []) : [];
-          const erpArchiveList = p.erpArchive?.ok ? (p.erpArchive.data?.data || []) : [];
-
-          if (p.crm?.ok || p.erpStudy?.ok || p.erpArchive?.ok) {
-            const merged = mergeCrmAndErp(crmList, erpStudyList, erpArchiveList, p.date || selectedDate);
-            renderLessons(merged);
-          }
+          processPayload(msg.payload || {});
         } catch (err) {
           console.error('[квантtouch] Ошибка обработки данных:', err);
           showBanner(`<span>Ошибка обработки расписания: ${escapeHtml(String(err))}</span>`, '');
@@ -1197,18 +1343,17 @@
       }
     });
 
-    // Initial render with demo data while checking for Tampermonkey bridge
-    renderLessons(demoLessons);
+    // Keep list empty until Tampermonkey provides real lessons
+    lucide.createIcons();
 
-    // Ping Tampermonkey script briefly on load
     let pingCount = 0;
     const pingTimer = setInterval(() => {
       if (bridgeConnected || pingCount >= 6) {
         clearInterval(pingTimer);
         if (!bridgeConnected) {
           showBanner(
-            `<span>Tampermonkey-скрипт не обнаружен (показан демо-режим).</span>`,
-            `<a href="kvanttouch.user.js" class="bg-[#9300FF] hover:bg-[#7E00DB] text-white px-3.5 py-1 rounded-full">Установить скрипт</a>`
+            `<span>Установи скрипт Tampermonkey, чтобы загрузить уроки из CRM и ERP.</span>`,
+            `<a href="kvanttouch.user.js" class="bg-[#9300FF] hover:bg-[#7E00DB] text-white px-4 py-1.5 rounded-full">Установить скрипт</a>`
           );
         }
         return;
