@@ -1081,6 +1081,7 @@
     // =========================================================================
     let bridgeConnected = false;
     let pendingRequestId = 0;
+    let loadTimeoutTimer = null;
 
     function showBanner(textHtml, actionsHtml) {
       const banner = document.getElementById('status-banner');
@@ -1104,22 +1105,42 @@
       }
     }
 
+    function stopSpinner() {
+      document.getElementById('refresh-btn').classList.remove('animate-spin');
+      if (loadTimeoutTimer) {
+        clearTimeout(loadTimeoutTimer);
+        loadTimeoutTimer = null;
+      }
+    }
+
     function requestTodayData() {
       if (!bridgeConnected) return;
       pendingRequestId++;
-      const refreshBtn = document.getElementById('refresh-btn');
-      refreshBtn.classList.add('animate-spin');
+      const reqId = pendingRequestId;
+      document.getElementById('refresh-btn').classList.add('animate-spin');
+
+      if (loadTimeoutTimer) clearTimeout(loadTimeoutTimer);
+      loadTimeoutTimer = setTimeout(() => {
+        if (pendingRequestId === reqId) {
+          stopSpinner();
+          showBanner(
+            `<span>Нет ответа от скрипта (проверь, разрешены ли запросы в Tampermonkey и обнови скрипт до 1.1.1).</span>`,
+            `<a href="kvanttouch.user.js" class="bg-[#9300FF] text-white px-3 py-1 rounded-full">Обновить скрипт</a><button onclick="requestTodayData()" class="bg-[#E2FA00] text-[#1A002E] font-medium px-3 py-1 rounded-lg">Повторить</button>`
+          );
+        }
+      }, 15000);
 
       window.postMessage({
         source: 'KVANT_UI',
         type: 'FETCH_TODAY',
         date: selectedDate,
-        requestId: pendingRequestId
+        requestId: reqId
       }, '*');
     }
 
     window.addEventListener('message', (event) => {
-      if (event.source !== window || !event.data || event.data.source !== 'KVANT_BRIDGE') return;
+      if (event.origin !== window.location.origin && event.origin !== 'null') return;
+      if (!event.data || event.data.source !== 'KVANT_BRIDGE') return;
       const msg = event.data;
 
       if (msg.type === 'BRIDGE_READY') {
@@ -1131,33 +1152,47 @@
           requestTodayData();
         }
       } else if (msg.type === 'TODAY_DATA') {
-        document.getElementById('refresh-btn').classList.remove('animate-spin');
+        stopSpinner();
         const p = msg.payload || {};
 
         const authLinks = [];
         if (p.crm && p.crm.authRequired) {
           authLinks.push(`<a href="https://codeclassonline.s20.online/teacher/1/calendar/index" target="_blank" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-white">Войти в CRM ↗</a>`);
         }
-        if (p.erpStudy && p.erpStudy.authRequired) {
+        if ((p.erpStudy && p.erpStudy.authRequired) || (p.erpArchive && p.erpArchive.authRequired)) {
           authLinks.push(`<a href="https://erp.kvantastica.ru/admin/teacher-study" target="_blank" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-white">Войти в ERP ↗</a>`);
         }
+
+        const errors = [];
+        if (p.crm && !p.crm.ok && !p.crm.authRequired) errors.push(`CRM: ${p.crm.error || p.crm.status}`);
+        if (p.erpStudy && !p.erpStudy.ok && !p.erpStudy.authRequired) errors.push(`ERP: ${p.erpStudy.error || p.erpStudy.status}`);
 
         if (authLinks.length > 0) {
           showBanner(
             `<span>Требуется вход в систему для загрузки реальных уроков:</span>`,
             authLinks.join('') + `<button onclick="requestTodayData()" class="bg-[#E2FA00] text-[#1A002E] font-medium px-3 py-1 rounded-lg">Обновить</button>`
           );
+        } else if (errors.length > 0) {
+          showBanner(
+            `<span>Ошибка загрузки (${escapeHtml(errors.join('; '))})</span>`,
+            `<button onclick="requestTodayData()" class="bg-[#E2FA00] text-[#1A002E] font-medium px-3 py-1 rounded-lg">Повторить</button>`
+          );
         } else {
           hideBanner();
         }
 
-        const crmList = p.crm?.ok ? (p.crm.data?.collection || []) : [];
-        const erpStudyList = p.erpStudy?.ok ? (p.erpStudy.data?.data || []) : [];
-        const erpArchiveList = p.erpArchive?.ok ? (p.erpArchive.data?.data || []) : [];
+        try {
+          const crmList = p.crm?.ok ? (p.crm.data?.collection || []) : [];
+          const erpStudyList = p.erpStudy?.ok ? (p.erpStudy.data?.data || []) : [];
+          const erpArchiveList = p.erpArchive?.ok ? (p.erpArchive.data?.data || []) : [];
 
-        if (p.crm?.ok || p.erpStudy?.ok || p.erpArchive?.ok) {
-          const merged = mergeCrmAndErp(crmList, erpStudyList, erpArchiveList, p.date || selectedDate);
-          renderLessons(merged);
+          if (p.crm?.ok || p.erpStudy?.ok || p.erpArchive?.ok) {
+            const merged = mergeCrmAndErp(crmList, erpStudyList, erpArchiveList, p.date || selectedDate);
+            renderLessons(merged);
+          }
+        } catch (err) {
+          console.error('[квантtouch] Ошибка обработки данных:', err);
+          showBanner(`<span>Ошибка обработки расписания: ${escapeHtml(String(err))}</span>`, '');
         }
       }
     });
