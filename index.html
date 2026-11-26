@@ -809,15 +809,19 @@
 
     function renderFlagsHtml(flags, isLightCard) {
       const tags = [];
+      const softTag = isLightCard
+        ? 'bg-[#E8DCFA] text-[#1B012E]'
+        : 'bg-white/10 text-white/90 border border-white/20';
+
       if (flags.timeMismatch) {
-        tags.push(`<span class="px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-[#E2FA00] text-[#1A002E]">Время ERP: ${flags.erpTime}</span>`);
+        tags.push(`<span class="px-2.5 py-0.5 rounded-md text-[11.5px] font-medium bg-[#E2FA00] text-[#1A002E]">Время ERP: ${flags.erpTime}</span>`);
       }
       if (flags.missingInErp && !flags.canceled) {
-        tags.push(`<span class="px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-rose-500/20 text-rose-200 border border-rose-400/30">Нет в ERP</span>`);
+        tags.push(`<span class="px-2.5 py-0.5 rounded-md text-[11.5px] font-medium ${softTag}">Нет в ERP</span>`);
       }
       if (flags.missingInCrm) {
         const label = flags.staleDate ? `Мусор в ERP (с ${flags.staleDate})` : 'Мусор в ERP (нет в CRM)';
-        tags.push(`<span class="px-2 py-0.5 rounded-md text-[11.5px] font-medium bg-amber-400/20 text-amber-200 border border-amber-300/35">${label}</span>`);
+        tags.push(`<span class="px-2.5 py-0.5 rounded-md text-[11.5px] font-medium ${softTag}">${label}</span>`);
       }
       return tags.join('');
     }
@@ -860,11 +864,11 @@
 
         if (lesson.flags?.missingInCrm) {
           parts.push(`
-            <article onclick="openLessonModalById('${lesson.id}')" class="mx-4 bg-[#220738] border border-dashed border-amber-400/40 rounded-[18px] px-7 py-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#2B0A47] transition-colors">
+            <article onclick="openLessonModalById('${lesson.id}')" class="mx-4 bg-[#21043A] border border-dashed border-[#8B6CA6]/55 rounded-[18px] px-7 py-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#2A0646] transition-colors">
               <div class="flex items-center gap-6 min-w-0">
-                <svg class="lesson-logo-svg" data-course="${escapeHtml(lesson.courseBadge)}" data-num="${escapeHtml(lesson.lessonNum)}" data-color="#FCD34D" width="78" height="64"></svg>
+                <svg class="lesson-logo-svg" data-course="${escapeHtml(lesson.courseBadge)}" data-num="${escapeHtml(lesson.lessonNum)}" data-color="#CBB5E0" width="78" height="64"></svg>
                 <div class="space-y-1.5 min-w-0">
-                  <div class="flex flex-wrap items-center gap-2 text-[15px] text-amber-200/80">
+                  <div class="flex flex-wrap items-center gap-2 text-[15px] text-[#A488BE]">
                     <i data-lucide="${typeIcon}" class="w-4 h-4 flex-shrink-0"></i>
                     <span class="truncate">${escapeHtml(lesson.headerName)}</span>
                     ${flagsHtml}
@@ -872,7 +876,7 @@
                   <div class="text-[18px] font-medium text-white/90 leading-snug">
                     ${escapeHtml(lesson.lessonTitle)}
                   </div>
-                  <div class="flex items-center gap-2 text-[14px] text-white/55">
+                  <div class="flex items-center gap-2 text-[14px] text-[#8B6CA6]">
                     <i data-lucide="clock" class="w-4 h-4 flex-shrink-0"></i>
                     <span>${lesson.flags.staleDate ? `${lesson.flags.staleDate} в ` : ''}${escapeHtml(lesson.startTime)}</span>
                   </div>
@@ -1002,14 +1006,14 @@
         cancelClass: 'text-white border-white/40 hover:bg-white/10'
       },
       junk: {
-        cardBg: '#220738',
+        cardBg: '#280644',
         textPrimary: '#FFFFFF',
-        textMuted: '#FCD34D',
-        logoColor: '#FCD34D',
-        rosterBorder: 'rgba(251, 191, 36, 0.35)',
+        textMuted: '#A488BE',
+        logoColor: '#CBB5E0',
+        rosterBorder: 'rgba(164, 136, 190, 0.35)',
         coinBg: 'rgba(255, 255, 255, 0.08)',
         coinText: '#FFFFFF',
-        cancelClass: 'text-amber-200 border-amber-400/50 hover:bg-white/10'
+        cancelClass: 'text-[#CBB5E0] border-[#8B6CA6]/60 hover:bg-white/10'
       }
     };
 
@@ -1195,17 +1199,17 @@
       const dot = document.getElementById(`dot-${id}`);
       chip.title = title || '';
       if (state === 'ok') {
-        dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-emerald-400/10 text-emerald-200 border border-emerald-400/25 hover:bg-emerald-400/20 transition-colors';
+        dot.className = 'w-2 h-2 rounded-full bg-white';
+        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-[#280644] text-white/85 border border-white/15 hover:bg-[#310852] transition-colors';
       } else if (state === 'auth') {
         dot.className = 'w-2 h-2 rounded-full bg-[#E2FA00]';
-        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-[#E2FA00]/15 text-[#E2FA00] border border-[#E2FA00]/40 hover:bg-[#E2FA00]/25 transition-colors';
+        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-[#E2FA00]/15 text-[#E2FA00] border border-[#E2FA00]/45 hover:bg-[#E2FA00]/25 transition-colors';
       } else if (state === 'error') {
-        dot.className = 'w-2 h-2 rounded-full bg-rose-400';
-        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-200 border border-rose-400/35 hover:bg-rose-500/25 transition-colors';
+        dot.className = 'w-2 h-2 rounded-full bg-[#E2FA00]';
+        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-[#280644] text-white border border-[#E2FA00]/45 hover:bg-[#310852] transition-colors';
       } else {
         dot.className = 'w-2 h-2 rounded-full bg-white/30';
-        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-white/5 text-white/55 border border-white/10 hover:bg-white/10 transition-colors';
+        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-white/5 text-white/50 border border-white/10 hover:bg-white/10 transition-colors';
       }
     }
 
