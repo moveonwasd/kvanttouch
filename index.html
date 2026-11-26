@@ -135,22 +135,24 @@
       </div>
     </header>
 
-    <!-- Status / Auth Notice Bar -->
-    <div id="status-banner" class="hidden mx-4 mb-5 px-4 py-3 rounded-[14px] bg-white/5 border border-white/10 text-[13.5px] text-white/85 flex flex-wrap items-center justify-between gap-3">
-      <div id="status-banner-text" class="flex items-center gap-2"></div>
-      <div id="status-banner-actions" class="flex items-center gap-2"></div>
-    </div>
+    <!-- Status / Auth Notice Stack -->
+    <div id="status-stack" class="hidden mx-4 mb-6 space-y-2.5"></div>
 
     <!-- Section Title -->
     <div class="flex items-center justify-between mb-5 px-4">
       <div class="flex items-center gap-3.5">
         <h1 class="text-[22px] font-normal text-white">Предстоящие занятия</h1>
-        <span id="date-badge" class="bg-[#E2FA00] text-[#1A002E] text-[15px] font-medium px-3.5 py-[3px] rounded-[7px] leading-tight">
-          сегодня
-        </span>
+        <button onclick="openDatePicker()" class="bg-[#E2FA00] text-[#1A002E] text-[15px] font-medium px-3.5 py-[3px] rounded-[7px] leading-tight hover:opacity-90 transition-opacity cursor-pointer" title="Выбрать дату">
+          <span id="date-badge">сегодня</span>
+        </button>
       </div>
 
-      <input id="date-picker" type="date" onchange="onDateChange(this.value)" class="bg-transparent text-white/40 hover:text-white/80 text-[13px] border border-white/10 rounded-lg px-2.5 py-1 focus:outline-none focus:border-[#E2FA00] cursor-pointer" title="Выбрать дату">
+      <div class="relative">
+        <button onclick="openDatePicker()" class="p-2 rounded-lg text-white/35 hover:text-white hover:bg-white/5 transition-colors" title="Выбрать дату">
+          <i data-lucide="calendar" class="w-4 h-4"></i>
+        </button>
+        <input id="date-picker" type="date" onchange="onDateChange(this.value)" class="sr-only" tabindex="-1">
+      </div>
     </div>
 
     <!-- Lessons List (empty until real data loads via Tampermonkey) -->
@@ -668,9 +670,9 @@
             erp: null,
             type: crm.type,
             headerName: crm.title,
-            courseBadge: 'НЕТ ERP',
-            lessonNum: '—',
-            lessonTitle: crm.topic || 'Нет урока в ERP',
+            courseBadge: 'НЕТ',
+            lessonNum: 'ERP',
+            lessonTitle: crm.crmStatus === '2' ? (crm.note || 'Урок отменён') : (crm.topic || 'Нет урока в ERP'),
             startTime: crm.startTime,
             endTime: crm.endTime,
             startMinutes: crm.startMinutes,
@@ -797,16 +799,13 @@
       const tags = [];
       const softTag = isLightCard
         ? 'bg-[#E8DCFA] text-[#1B012E]'
-        : 'bg-white/10 text-white/90 border border-white/20';
+        : 'bg-white/10 text-white/90';
 
       if (flags.timeMismatch) {
         tags.push(`<span class="px-2.5 py-0.5 rounded-md text-[11.5px] font-medium bg-[#E2FA00] text-[#1A002E]">Время ERP: ${flags.erpTime}</span>`);
       }
-      if (flags.missingInErp && !flags.canceled) {
-        tags.push(`<span class="px-2.5 py-0.5 rounded-md text-[11.5px] font-medium ${softTag}">Нет в ERP</span>`);
-      }
       if (flags.missingInCrm) {
-        const label = flags.staleDate ? `Мусор в ERP (с ${flags.staleDate})` : 'Мусор в ERP (нет в CRM)';
+        const label = flags.staleDate ? `Нет в CRM · ${flags.staleDate}` : 'Нет в CRM';
         tags.push(`<span class="px-2.5 py-0.5 rounded-md text-[11.5px] font-medium ${softTag}">${label}</span>`);
       }
       return tags.join('');
@@ -1205,19 +1204,40 @@
       }
     }
 
-    function showBanner(textHtml, actionsHtml, isUrgent = false) {
-      const banner = document.getElementById('status-banner');
-      banner.className = isUrgent
-        ? 'mx-4 mb-5 px-4 py-3 rounded-[14px] bg-[#280644] border border-[#E2FA00]/45 text-[13.5px] text-white flex flex-wrap items-center justify-between gap-3'
-        : 'mx-4 mb-5 px-4 py-3 rounded-[14px] bg-[#280644] border border-white/10 text-[13.5px] text-white/85 flex flex-wrap items-center justify-between gap-3';
-      document.getElementById('status-banner-text').innerHTML = textHtml;
-      document.getElementById('status-banner-actions').innerHTML = actionsHtml || '';
-      banner.classList.remove('hidden');
+    function renderNotices(items) {
+      const stack = document.getElementById('status-stack');
+      if (!items || items.length === 0) {
+        stack.innerHTML = '';
+        stack.classList.add('hidden');
+        return;
+      }
+
+      stack.innerHTML = items.map((item) => `
+        <div class="bg-[#280644] rounded-[16px] px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3 text-[14.5px] text-white/90">
+            <span class="w-2 h-2 rounded-full ${item.urgent ? 'bg-[#E2FA00]' : 'bg-[#8B6CA6]'} flex-shrink-0"></span>
+            <span>${item.text}</span>
+          </div>
+          <div class="flex items-center gap-3 flex-shrink-0">
+            ${item.actions}
+          </div>
+        </div>
+      `).join('');
+      stack.classList.remove('hidden');
       lucide.createIcons();
     }
 
-    function hideBanner() {
-      document.getElementById('status-banner').classList.add('hidden');
+    function hideNotices() {
+      renderNotices([]);
+    }
+
+    function openDatePicker() {
+      const picker = document.getElementById('date-picker');
+      if (typeof picker.showPicker === 'function') {
+        picker.showPicker();
+      } else {
+        picker.click();
+      }
     }
 
     function onDateChange(val) {
@@ -1249,11 +1269,11 @@
         if (pendingRequestId === reqId) {
           stopSpinner();
           updatePlugVisual('attention');
-          showBanner(
-            `<span>Нет ответа от скрипта Tampermonkey. Обнови скрипт до версии ${REQUIRED_SCRIPT_VERSION}.</span>`,
-            `<a href="kvanttouch.user.js" class="bg-[#E2FA00] text-[#1A002E] font-medium px-3.5 py-1.5 rounded-full">Обновить скрипт</a><button onclick="requestTodayData()" class="bg-white/10 hover:bg-white/20 text-white px-3.5 py-1.5 rounded-full">Повторить</button>`,
-            true
-          );
+          renderNotices([{
+            urgent: true,
+            text: `Нет ответа от скрипта Tampermonkey (требуется версия ${REQUIRED_SCRIPT_VERSION})`,
+            actions: `<a href="kvanttouch.user.js" class="bg-[#E2FA00] text-[#1A002E] text-[13.5px] font-medium px-4 py-1.5 rounded-full">Обновить</a>`
+          }]);
         }
       }, 15000);
 
@@ -1277,46 +1297,38 @@
       const erpAuth = Boolean(p.erpStudy?.authRequired || p.erpArchive?.authRequired);
       const erpOk = erpStudyOk && erpArchiveOk;
 
-      const issues = [];
-      const actions = [];
-      let isUrgent = false;
+      const notices = [];
 
       if (outdated) {
-        isUrgent = true;
         updatePlugVisual('attention');
-        issues.push(`Скрипт устарел (установлен ${ver || '?'}, требуется ${REQUIRED_SCRIPT_VERSION})`);
-        actions.push(`<a href="kvanttouch.user.js" class="bg-[#E2FA00] text-[#1A002E] font-medium px-3.5 py-1.5 rounded-full">Обновить до ${REQUIRED_SCRIPT_VERSION}</a>`);
+        notices.push({
+          urgent: true,
+          text: `Скрипт устарел (${ver || '?'} → ${REQUIRED_SCRIPT_VERSION})`,
+          actions: `<a href="kvanttouch.user.js" class="bg-[#E2FA00] text-[#1A002E] text-[13.5px] font-medium px-4 py-1.5 rounded-full hover:opacity-90 transition-opacity">Обновить</a>`
+        });
       } else {
         updatePlugVisual('ok');
       }
 
       if (!crmOk) {
-        isUrgent = true;
-        if (crmAuth) {
-          issues.push('Не выполнен вход в AlfaCRM');
-          actions.push(`<a href="https://codeclassonline.s20.online/teacher/1/calendar/index" target="_blank" class="bg-white/10 hover:bg-white/20 px-3.5 py-1.5 rounded-full text-white">Войти в CRM ↗</a>`);
-        } else {
-          issues.push(`AlfaCRM недоступна (${p.crm?.error || 'ошибка'})`);
-        }
+        notices.push({
+          urgent: crmAuth,
+          text: crmAuth ? 'Не выполнен вход в AlfaCRM' : `AlfaCRM недоступна (${escapeHtml(p.crm?.error || 'ошибка')})`,
+          actions: (crmAuth ? `<a href="https://codeclassonline.s20.online/teacher/1/calendar/index" target="_blank" class="text-[13.5px] text-white/65 hover:text-white transition-colors">Открыть CRM ↗</a>` : '') +
+            `<button onclick="requestTodayData()" class="bg-[#9300FF] hover:bg-[#7E00DB] text-white text-[13.5px] px-4 py-1.5 rounded-full transition-colors">Повторить</button>`
+        });
       }
 
       if (!erpOk) {
-        isUrgent = true;
-        if (erpAuth) {
-          issues.push('Не выполнен вход в ERP');
-          actions.push(`<a href="https://erp.kvantastica.ru/admin/teacher-study" target="_blank" class="bg-white/10 hover:bg-white/20 px-3.5 py-1.5 rounded-full text-white">Войти в ERP ↗</a>`);
-        } else {
-          const errMsg = p.erpStudy?.error || p.erpArchive?.error || 'ошибка';
-          issues.push(`ERP недоступна (${errMsg})`);
-        }
+        notices.push({
+          urgent: erpAuth,
+          text: erpAuth ? 'Не выполнен вход в ERP' : `ERP недоступна (${escapeHtml(p.erpStudy?.error || p.erpArchive?.error || 'ошибка')})`,
+          actions: (erpAuth ? `<a href="https://erp.kvantastica.ru/admin/teacher-study" target="_blank" class="text-[13.5px] text-white/65 hover:text-white transition-colors">Открыть ERP ↗</a>` : '') +
+            `<button onclick="requestTodayData()" class="bg-[#9300FF] hover:bg-[#7E00DB] text-white text-[13.5px] px-4 py-1.5 rounded-full transition-colors">Повторить</button>`
+        });
       }
 
-      if (issues.length > 0) {
-        actions.push(`<button onclick="requestTodayData()" class="bg-[#9300FF] hover:bg-[#7E00DB] text-white px-4 py-1.5 rounded-full transition-colors">Проверить снова</button>`);
-        showBanner(`<span>${escapeHtml(issues.join(' · '))}</span>`, actions.join(''), isUrgent);
-      } else {
-        hideBanner();
-      }
+      renderNotices(notices);
 
       const crmList = crmOk ? (p.crm.data.collection || []) : [];
       const erpStudyList = erpStudyOk ? (p.erpStudy.data.data || []) : [];
@@ -1359,7 +1371,11 @@
           processPayload(msg.payload || {});
         } catch (err) {
           console.error('[квантtouch] Ошибка обработки данных:', err);
-          showBanner(`<span>Ошибка обработки расписания: ${escapeHtml(String(err))}</span>`, '');
+          renderNotices([{
+            urgent: false,
+            text: `Ошибка обработки расписания: ${escapeHtml(String(err))}`,
+            actions: ''
+          }]);
         }
       }
     });
@@ -1372,11 +1388,11 @@
         clearInterval(pingTimer);
         if (!bridgeConnected) {
           updatePlugVisual('attention');
-          showBanner(
-            `<span>Установи скрипт Tampermonkey (v${REQUIRED_SCRIPT_VERSION}), чтобы загрузить уроки.</span>`,
-            `<a href="kvanttouch.user.js" class="bg-[#E2FA00] text-[#1A002E] font-medium px-4 py-1.5 rounded-full">Установить скрипт</a>`,
-            true
-          );
+          renderNotices([{
+            urgent: true,
+            text: `Установи скрипт Tampermonkey (v${REQUIRED_SCRIPT_VERSION}) для загрузки уроков`,
+            actions: `<a href="kvanttouch.user.js" class="bg-[#E2FA00] text-[#1A002E] text-[13.5px] font-medium px-4 py-1.5 rounded-full">Установить</a>`
+          }]);
         }
         return;
       }
