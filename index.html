@@ -122,30 +122,16 @@
         <span class="text-[28px] font-light leading-none">)</span>
       </div>
 
-      <div class="flex items-center gap-3">
-        <!-- Foolproof system health pills -->
-        <div class="flex items-center gap-2 mr-1">
-          <a id="chip-crm" href="https://codeclassonline.s20.online/teacher/1/calendar/index" target="_blank" class="flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-white/5 text-white/55 border border-white/10 hover:bg-white/10 transition-colors" title="Статус подключения AlfaCRM">
-            <span id="dot-crm" class="w-2 h-2 rounded-full bg-white/30"></span>
-            <span>CRM</span>
-          </a>
-          <a id="chip-erp" href="https://erp.kvantastica.ru/admin/teacher-study" target="_blank" class="flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-white/5 text-white/55 border border-white/10 hover:bg-white/10 transition-colors" title="Статус подключения ERP">
-            <span id="dot-erp" class="w-2 h-2 rounded-full bg-white/30"></span>
-            <span>ERP</span>
-          </a>
-        </div>
-
-        <div class="flex items-center gap-1 text-white/40">
-          <button id="refresh-btn" onclick="requestTodayData()" title="Обновить данные из CRM и ERP" class="p-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors">
-            <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-          </button>
-          <button onclick="openSettingsModal()" title="Настройки" class="p-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors">
-            <i data-lucide="settings" class="w-5 h-5"></i>
-          </button>
-          <button id="plug-btn" onclick="openUserscriptModal()" title="Юзерскрипт Tampermonkey" class="p-2 rounded-lg hover:text-[#E2FA00] hover:bg-white/5 transition-colors">
-            <i data-lucide="plug" class="w-5 h-5"></i>
-          </button>
-        </div>
+      <div class="flex items-center gap-1 text-white/40">
+        <button id="refresh-btn" onclick="requestTodayData()" title="Обновить данные из CRM и ERP" class="p-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors">
+          <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+        </button>
+        <button onclick="openSettingsModal()" title="Настройки" class="p-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors">
+          <i data-lucide="settings" class="w-5 h-5"></i>
+        </button>
+        <button id="plug-btn" onclick="openUserscriptModal()" title="Юзерскрипт Tampermonkey" class="p-2 rounded-lg hover:text-white hover:bg-white/5 transition-colors">
+          <i data-lucide="plug" class="w-5 h-5"></i>
+        </button>
       </div>
     </header>
 
@@ -268,7 +254,7 @@
       </div>
 
       <div class="mt-6 flex justify-end">
-        <button onclick="saveSettings()" class="bg-[#E2FA00] text-[#1A002E] font-medium text-[14px] px-5 py-2 rounded-[8px] hover:opacity-90 transition-opacity">
+        <button onclick="saveSettings()" class="bg-[#9300FF] hover:bg-[#7E00DB] text-white font-normal text-[14px] px-5 py-2 rounded-full transition-colors">
           Сохранить
         </button>
       </div>
@@ -1187,34 +1173,43 @@
     }
 
     // =========================================================================
-    // 5. FOOLPROOF TAMPERMONKEY BRIDGE & HEALTH CHECKS
+    // 5. FOOLPROOF TAMPERMONKEY BRIDGE, VERSION CHECK & HEALTH CHECKS
     // =========================================================================
+    const REQUIRED_SCRIPT_VERSION = '1.2.2';
     let bridgeConnected = false;
+    let installedScriptVersion = null;
     let pendingRequestId = 0;
     let loadTimeoutTimer = null;
     let lastRawPayload = null;
 
-    function setChipStatus(id, state, title) {
-      const chip = document.getElementById(`chip-${id}`);
-      const dot = document.getElementById(`dot-${id}`);
-      chip.title = title || '';
-      if (state === 'ok') {
-        dot.className = 'w-2 h-2 rounded-full bg-white';
-        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-[#280644] text-white/85 border border-white/15 hover:bg-[#310852] transition-colors';
-      } else if (state === 'auth') {
-        dot.className = 'w-2 h-2 rounded-full bg-[#E2FA00]';
-        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-[#E2FA00]/15 text-[#E2FA00] border border-[#E2FA00]/45 hover:bg-[#E2FA00]/25 transition-colors';
-      } else if (state === 'error') {
-        dot.className = 'w-2 h-2 rounded-full bg-[#E2FA00]';
-        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-[#280644] text-white border border-[#E2FA00]/45 hover:bg-[#310852] transition-colors';
+    function compareSemver(a, b) {
+      const pa = String(a || '0.0.0').split('.').map((n) => parseInt(n, 10) || 0);
+      const pb = String(b || '0.0.0').split('.').map((n) => parseInt(n, 10) || 0);
+      for (let i = 0; i < 3; i++) {
+        if ((pa[i] || 0) < (pb[i] || 0)) return -1;
+        if ((pa[i] || 0) > (pb[i] || 0)) return 1;
+      }
+      return 0;
+    }
+
+    function isScriptOutdated(ver) {
+      return compareSemver(ver || '0.0.0', REQUIRED_SCRIPT_VERSION) < 0;
+    }
+
+    function updatePlugVisual(state) {
+      const plug = document.getElementById('plug-btn');
+      if (state === 'attention') {
+        plug.className = 'p-2 rounded-lg text-[#E2FA00] hover:bg-white/5 transition-colors';
       } else {
-        dot.className = 'w-2 h-2 rounded-full bg-white/30';
-        chip.className = 'flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-full bg-white/5 text-white/50 border border-white/10 hover:bg-white/10 transition-colors';
+        plug.className = 'p-2 rounded-lg text-white/45 hover:text-white hover:bg-white/5 transition-colors';
       }
     }
 
-    function showBanner(textHtml, actionsHtml) {
+    function showBanner(textHtml, actionsHtml, isUrgent = false) {
       const banner = document.getElementById('status-banner');
+      banner.className = isUrgent
+        ? 'mx-4 mb-5 px-4 py-3 rounded-[14px] bg-[#280644] border border-[#E2FA00]/45 text-[13.5px] text-white flex flex-wrap items-center justify-between gap-3'
+        : 'mx-4 mb-5 px-4 py-3 rounded-[14px] bg-[#280644] border border-white/10 text-[13.5px] text-white/85 flex flex-wrap items-center justify-between gap-3';
       document.getElementById('status-banner-text').innerHTML = textHtml;
       document.getElementById('status-banner-actions').innerHTML = actionsHtml || '';
       banner.classList.remove('hidden');
@@ -1253,11 +1248,11 @@
       loadTimeoutTimer = setTimeout(() => {
         if (pendingRequestId === reqId) {
           stopSpinner();
-          setChipStatus('crm', 'error', 'Нет ответа от скрипта');
-          setChipStatus('erp', 'error', 'Нет ответа от скрипта');
+          updatePlugVisual('attention');
           showBanner(
-            `<span>Нет ответа от скрипта Tampermonkey. Обнови скрипт до последней версии.</span>`,
-            `<a href="kvanttouch.user.js" class="bg-[#9300FF] text-white px-3.5 py-1 rounded-full">Обновить скрипт</a><button onclick="requestTodayData()" class="bg-[#E2FA00] text-[#1A002E] font-medium px-3 py-1 rounded-lg">Повторить</button>`
+            `<span>Нет ответа от скрипта Tampermonkey. Обнови скрипт до версии ${REQUIRED_SCRIPT_VERSION}.</span>`,
+            `<a href="kvanttouch.user.js" class="bg-[#E2FA00] text-[#1A002E] font-medium px-3.5 py-1.5 rounded-full">Обновить скрипт</a><button onclick="requestTodayData()" class="bg-white/10 hover:bg-white/20 text-white px-3.5 py-1.5 rounded-full">Повторить</button>`,
+            true
           );
         }
       }, 15000);
@@ -1272,6 +1267,9 @@
 
     function processPayload(p) {
       lastRawPayload = p;
+      const ver = p.scriptVersion || installedScriptVersion;
+      const outdated = isScriptOutdated(ver);
+
       const crmOk = Boolean(p.crm?.ok);
       const crmAuth = Boolean(p.crm?.authRequired);
       const erpStudyOk = Boolean(p.erpStudy?.ok);
@@ -1279,25 +1277,34 @@
       const erpAuth = Boolean(p.erpStudy?.authRequired || p.erpArchive?.authRequired);
       const erpOk = erpStudyOk && erpArchiveOk;
 
-      setChipStatus('crm', crmOk ? 'ok' : (crmAuth ? 'auth' : 'error'), crmOk ? 'CRM подключена' : (crmAuth ? 'Нужен вход в CRM' : (p.crm?.error || 'Ошибка CRM')));
-      setChipStatus('erp', erpOk ? 'ok' : (erpAuth ? 'auth' : 'error'), erpOk ? 'ERP подключена' : (erpAuth ? 'Нужен вход в ERP' : (p.erpStudy?.error || p.erpArchive?.error || 'Ошибка ERP')));
-
       const issues = [];
       const actions = [];
+      let isUrgent = false;
+
+      if (outdated) {
+        isUrgent = true;
+        updatePlugVisual('attention');
+        issues.push(`Скрипт устарел (установлен ${ver || '?'}, требуется ${REQUIRED_SCRIPT_VERSION})`);
+        actions.push(`<a href="kvanttouch.user.js" class="bg-[#E2FA00] text-[#1A002E] font-medium px-3.5 py-1.5 rounded-full">Обновить до ${REQUIRED_SCRIPT_VERSION}</a>`);
+      } else {
+        updatePlugVisual('ok');
+      }
 
       if (!crmOk) {
+        isUrgent = true;
         if (crmAuth) {
           issues.push('Не выполнен вход в AlfaCRM');
-          actions.push(`<a href="https://codeclassonline.s20.online/teacher/1/calendar/index" target="_blank" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-white">Войти в CRM ↗</a>`);
+          actions.push(`<a href="https://codeclassonline.s20.online/teacher/1/calendar/index" target="_blank" class="bg-white/10 hover:bg-white/20 px-3.5 py-1.5 rounded-full text-white">Войти в CRM ↗</a>`);
         } else {
           issues.push(`AlfaCRM недоступна (${p.crm?.error || 'ошибка'})`);
         }
       }
 
       if (!erpOk) {
+        isUrgent = true;
         if (erpAuth) {
           issues.push('Не выполнен вход в ERP');
-          actions.push(`<a href="https://erp.kvantastica.ru/admin/teacher-study" target="_blank" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-white">Войти в ERP ↗</a>`);
+          actions.push(`<a href="https://erp.kvantastica.ru/admin/teacher-study" target="_blank" class="bg-white/10 hover:bg-white/20 px-3.5 py-1.5 rounded-full text-white">Войти в ERP ↗</a>`);
         } else {
           const errMsg = p.erpStudy?.error || p.erpArchive?.error || 'ошибка';
           issues.push(`ERP недоступна (${errMsg})`);
@@ -1305,8 +1312,8 @@
       }
 
       if (issues.length > 0) {
-        actions.push(`<button onclick="requestTodayData()" class="bg-[#E2FA00] text-[#1A002E] font-medium px-3 py-1 rounded-lg">Проверить снова</button>`);
-        showBanner(`<span>${escapeHtml(issues.join(' · '))}</span>`, actions.join(''));
+        actions.push(`<button onclick="requestTodayData()" class="bg-[#9300FF] hover:bg-[#7E00DB] text-white px-4 py-1.5 rounded-full transition-colors">Проверить снова</button>`);
+        showBanner(`<span>${escapeHtml(issues.join(' · '))}</span>`, actions.join(''), isUrgent);
       } else {
         hideBanner();
       }
@@ -1329,11 +1336,21 @@
       const msg = event.data;
 
       if (msg.type === 'BRIDGE_READY') {
+        installedScriptVersion = msg.version || '0.0.0';
+        const outdated = isScriptOutdated(installedScriptVersion);
+
+        if (outdated) {
+          updatePlugVisual('attention');
+          document.getElementById('userscript-status-text').innerText =
+            `Установлена устаревшая версия скрипта (${installedScriptVersion}). Требуется обновление до ${REQUIRED_SCRIPT_VERSION}.`;
+        } else {
+          updatePlugVisual('ok');
+          document.getElementById('userscript-status-text').innerText =
+            `Tampermonkey-мост подключён (версия ${installedScriptVersion}).`;
+        }
+
         if (!bridgeConnected) {
           bridgeConnected = true;
-          document.getElementById('plug-btn').classList.add('text-[#E2FA00]');
-          document.getElementById('userscript-status-text').innerText =
-            `Tampermonkey-мост подключён (версия ${msg.version}). Данные загружаются напрямую из AlfaCRM и ERP.`;
           requestTodayData();
         }
       } else if (msg.type === 'TODAY_DATA') {
@@ -1347,7 +1364,6 @@
       }
     });
 
-    // Keep list empty until Tampermonkey provides real lessons
     lucide.createIcons();
 
     let pingCount = 0;
@@ -1355,9 +1371,11 @@
       if (bridgeConnected || pingCount >= 6) {
         clearInterval(pingTimer);
         if (!bridgeConnected) {
+          updatePlugVisual('attention');
           showBanner(
-            `<span>Установи скрипт Tampermonkey, чтобы загрузить уроки из CRM и ERP.</span>`,
-            `<a href="kvanttouch.user.js" class="bg-[#9300FF] hover:bg-[#7E00DB] text-white px-4 py-1.5 rounded-full">Установить скрипт</a>`
+            `<span>Установи скрипт Tampermonkey (v${REQUIRED_SCRIPT_VERSION}), чтобы загрузить уроки.</span>`,
+            `<a href="kvanttouch.user.js" class="bg-[#E2FA00] text-[#1A002E] font-medium px-4 py-1.5 rounded-full">Установить скрипт</a>`,
+            true
           );
         }
         return;
