@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ((квантtouch))
 // @namespace    https://moveonwasd.github.io/kvanttouch/
-// @version      1.2.0
+// @version      1.2.1
 // @description  Мост для синхронизации AlfaCRM, ERP Квантастика и Контур.Толк в едином интерфейсе ((квантtouch))
 // @author       Kvantastica
 // @match        https://moveonwasd.github.io/kvanttouch/*
@@ -15,6 +15,9 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_addValueChangeListener
+// @grant        GM_removeValueChangeListener
+// @grant        GM_openInTab
+// @grant        window.close
 // @run-at       document-idle
 // ==/UserScript==
 
@@ -23,7 +26,7 @@
 
     const host = window.location.hostname;
 
-    function gmFetchJson(url, validateFn) {
+    function gmFetchJson(url, validateFn, customHeaders = {}) {
         return new Promise((resolve) => {
             try {
                 GM_xmlhttpRequest({
@@ -33,7 +36,8 @@
                     anonymous: false,
                     headers: {
                         'Accept': 'application/json, text/plain, */*',
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        ...customHeaders
                     },
                     onload: function (res) {
                         const finalUrl = res.finalUrl || url;
@@ -59,7 +63,6 @@
                         try {
                             const json = JSON.parse(text);
                             if (validateFn && !validateFn(json)) {
-                                // Some APIs return 200 with an auth error JSON
                                 if (json && (json.message === 'Unauthenticated.' || json.error === 'Unauthorized')) {
                                     resolve({ ok: false, authRequired: true, unreachable: false, status: 401 });
                                 } else {
@@ -107,6 +110,76 @@
     const isCrmValid = (j) => j && Array.isArray(j.collection);
     const isErpValid = (j) => j && Array.isArray(j.data);
 
+    const erpHeaders = {
+        'Referer': 'https://erp.kvantastica.ru/admin/teacher-study',
+        'Origin': 'https://erp.kvantastica.ru'
+    };
+
+    const crmHeaders = {
+        'Referer': 'https://codeclassonline.s20.online/teacher/1/calendar/index',
+        'Origin': 'https://codeclassonline.s20.online'
+    };
+
+    /**
+     * Same-origin fetch fallback via open ERP tab or brief silent background tab.
+     * Solves Chrome MV3 SameSite/Sanctum cookie restrictions when GM_xmlhttpRequest is rejected.
+     */
+    function fetchErpViaTabBridge(today) {
+        return new Promise((resolve) => {
+            const reqId = `erp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+            let settled = false;
+            let bgTab = null;
+            let listenerId = null;
+            let openFallbackTimer = null;
+            let hardTimeout = null;
+
+            const cleanup = () => {
+                if (listenerId !== null) {
+                    try { GM_removeValueChangeListener(listenerId); } catch (e) {}
+                }
+                if (openFallbackTimer) clearTimeout(openFallbackTimer);
+                if (hardTimeout) clearTimeout(hardTimeout);
+                if (bgTab && typeof bgTab.close === 'function') {
+                    try { bgTab.close(); } catch (e) {}
+                }
+            };
+
+            listenerId = GM_addValueChangeListener('kvant_erp_res', (name, oldVal, newVal) => {
+                if (settled || !newVal || newVal.reqId !== reqId) return;
+                settled = true;
+                cleanup();
+                resolve({ erpStudy: newVal.erpStudy, erpArchive: newVal.erpArchive });
+            });
+
+            // Step 1: Ping any already-open ERP tab
+            GM_setValue('kvant_erp_req', { reqId, today, ts: Date.now() });
+
+            // Step 2: If no open ERP tab answered in 900ms, briefly open background tab
+            openFallbackTimer = setTimeout(() => {
+                if (settled) return;
+                if (typeof GM_openInTab === 'function') {
+                    try {
+                        bgTab = GM_openInTab(`https://erp.kvantastica.ru/admin/teacher-study#kvant_sync=${reqId}&date=${today}`, {
+                            active: false,
+                            insert: false,
+                            setParent: true
+                        });
+                    } catch (e) {
+                        console.warn('[квантtouch] GM_openInTab failed:', e);
+                    }
+                }
+            }, 900);
+
+            // Safety timeout (10s)
+            hardTimeout = setTimeout(() => {
+                if (settled) return;
+                settled = true;
+                cleanup();
+                resolve(null);
+            }, 10000);
+        });
+    }
+
     async function fetchAllTodayData(targetDateStr) {
         const { today, tomorrow } = getLocalDateStrings(targetDateStr);
 
@@ -114,29 +187,35 @@
         const erpStudyUrl = `https://erp.kvantastica.ru/api/admin/teacher/study?page=1`;
         const erpArchiveUrl = `https://erp.kvantastica.ru/api/admin/teacher/study/archive?page=1`;
 
-        const [crm, erpStudy, erpArchive] = await Promise.all([
-            gmFetchJson(crmUrl, isCrmValid),
-            gmFetchJson(erpStudyUrl, isErpValid),
-            gmFetchJson(erpArchiveUrl, isErpValid)
+        let [crm, erpStudy, erpArchive] = await Promise.all([
+            gmFetchJson(crmUrl, isCrmValid, crmHeaders),
+            gmFetchJson(erpStudyUrl, isErpValid, erpHeaders),
+            gmFetchJson(erpArchiveUrl, isErpValid, erpHeaders)
         ]);
 
-        // Paginate ERP study only if page 1 ends on or before target date
+        // Paginate ERP via GM_xmlhttpRequest if needed
         if (erpStudy.ok && erpStudy.data.links && erpStudy.data.links.next && erpStudy.data.data.length > 0) {
-            const lastItem = erpStudy.data.data[erpStudy.data.data.length - 1];
-            const lastDate = (lastItem.date_start || '').slice(0, 10);
+            const lastDate = (erpStudy.data.data[erpStudy.data.data.length - 1].date_start || '').slice(0, 10);
             if (!lastDate || lastDate <= today) {
-                const p2 = await gmFetchJson(erpStudy.data.links.next, isErpValid);
+                const p2 = await gmFetchJson(erpStudy.data.links.next, isErpValid, erpHeaders);
                 if (p2.ok) erpStudy.data.data = erpStudy.data.data.concat(p2.data.data);
             }
         }
-
-        // Paginate ERP archive only if page 1 last item is still >= target date
         if (erpArchive.ok && erpArchive.data.links && erpArchive.data.links.next && erpArchive.data.data.length > 0) {
-            const lastItem = erpArchive.data.data[erpArchive.data.data.length - 1];
-            const lastDate = (lastItem.date_start || '').slice(0, 10);
+            const lastDate = (erpArchive.data.data[erpArchive.data.data.length - 1].date_start || '').slice(0, 10);
             if (!lastDate || lastDate >= today) {
-                const p2 = await gmFetchJson(erpArchive.data.links.next, isErpValid);
+                const p2 = await gmFetchJson(erpArchive.data.links.next, isErpValid, erpHeaders);
                 if (p2.ok) erpArchive.data.data = erpArchive.data.data.concat(p2.data.data);
+            }
+        }
+
+        // If ERP GM_xmlhttpRequest was blocked by SameSite/Sanctum auth, fallback to same-origin ERP tab bridge
+        if ((!erpStudy.ok && erpStudy.authRequired) || (!erpArchive.ok && erpArchive.authRequired)) {
+            console.log('[квантtouch] GM_xmlhttpRequest к ERP получил authRequired, пробую same-origin мост...');
+            const tabRes = await fetchErpViaTabBridge(today);
+            if (tabRes) {
+                erpStudy = tabRes.erpStudy;
+                erpArchive = tabRes.erpArchive;
             }
         }
 
@@ -148,12 +227,15 @@
         };
     }
 
+    // =========================================================================
+    // ROLE 1: DASHBOARD (GitHub Pages)
+    // =========================================================================
     if (host.includes('github.io')) {
         const announceReady = () => {
             window.postMessage({
                 source: 'KVANT_BRIDGE',
                 type: 'BRIDGE_READY',
-                version: (typeof GM_info !== 'undefined' && GM_info.script) ? GM_info.script.version : '1.2.0'
+                version: (typeof GM_info !== 'undefined' && GM_info.script) ? GM_info.script.version : '1.2.1'
             }, '*');
         };
 
@@ -190,5 +272,95 @@
         });
 
         announceReady();
+    }
+
+    // =========================================================================
+    // ROLE 2: ERP WORKER (Same-origin fetch inside erp.kvantastica.ru)
+    // =========================================================================
+    else if (host.includes('erp.kvantastica.ru')) {
+        async function sameOriginErpFetch(url) {
+            try {
+                const res = await fetch(url, {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json, text/plain, */*',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                if (res.redirected && res.url.includes('/login')) {
+                    return { ok: false, authRequired: true, status: 401 };
+                }
+                if (res.status === 401 || res.status === 403) {
+                    return { ok: false, authRequired: true, status: res.status };
+                }
+                if (!res.ok) {
+                    return { ok: false, unreachable: true, status: res.status, error: `HTTP ${res.status}` };
+                }
+                const text = await res.text();
+                if (text.trim().startsWith('<')) {
+                    return { ok: false, authRequired: true, status: 401 };
+                }
+                const json = JSON.parse(text);
+                if (!isErpValid(json)) {
+                    return { ok: false, unreachable: true, error: 'Неожиданный формат ERP' };
+                }
+                return { ok: true, authRequired: false, data: json };
+            } catch (err) {
+                return { ok: false, unreachable: true, error: String(err) };
+            }
+        }
+
+        async function runErpSync(reqId, today) {
+            if (window.location.pathname.includes('/login')) {
+                GM_setValue('kvant_erp_res', {
+                    reqId,
+                    erpStudy: { ok: false, authRequired: true },
+                    erpArchive: { ok: false, authRequired: true }
+                });
+                return;
+            }
+
+            const [erpStudy, erpArchive] = await Promise.all([
+                sameOriginErpFetch('/api/admin/teacher/study?page=1'),
+                sameOriginErpFetch('/api/admin/teacher/study/archive?page=1')
+            ]);
+
+            if (erpStudy.ok && erpStudy.data.links && erpStudy.data.links.next && erpStudy.data.data.length > 0) {
+                const lastDate = (erpStudy.data.data[erpStudy.data.data.length - 1].date_start || '').slice(0, 10);
+                if (!lastDate || lastDate <= today) {
+                    const p2 = await sameOriginErpFetch(new URL(erpStudy.data.links.next).pathname + new URL(erpStudy.data.links.next).search);
+                    if (p2.ok) erpStudy.data.data = erpStudy.data.data.concat(p2.data.data);
+                }
+            }
+            if (erpArchive.ok && erpArchive.data.links && erpArchive.data.links.next && erpArchive.data.data.length > 0) {
+                const lastDate = (erpArchive.data.data[erpArchive.data.data.length - 1].date_start || '').slice(0, 10);
+                if (!lastDate || lastDate >= today) {
+                    const p2 = await sameOriginErpFetch(new URL(erpArchive.data.links.next).pathname + new URL(erpArchive.data.links.next).search);
+                    if (p2.ok) erpArchive.data.data = erpArchive.data.data.concat(p2.data.data);
+                }
+            }
+
+            GM_setValue('kvant_erp_res', { reqId, erpStudy, erpArchive });
+        }
+
+        // If opened as a silent background sync tab, execute and close immediately
+        const hash = window.location.hash || '';
+        if (hash.includes('kvant_sync=')) {
+            const params = new URLSearchParams(hash.slice(1));
+            const reqId = params.get('kvant_sync');
+            const today = params.get('date') || getLocalDateStrings().today;
+            runErpSync(reqId, today).then(() => {
+                setTimeout(() => {
+                    try { window.close(); } catch (e) {}
+                }, 150);
+            });
+        } else {
+            // Normal open ERP tab: respond to live requests from dashboard
+            GM_addValueChangeListener('kvant_erp_req', (name, oldVal, newVal, remote) => {
+                if (!remote || !newVal || !newVal.reqId) return;
+                runErpSync(newVal.reqId, newVal.today || getLocalDateStrings().today);
+            });
+        }
     }
 })();
