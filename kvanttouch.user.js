@@ -1,9 +1,11 @@
 // ==UserScript==
 // @name         ((квантtouch))
 // @namespace    https://moveonwasd.github.io/kvanttouch/
-// @version      1.2.1
+// @version      1.2.2
 // @description  Мост для синхронизации AlfaCRM, ERP Квантастика и Контур.Толк в едином интерфейсе ((квантtouch))
 // @author       Kvantastica
+// @updateURL    https://moveonwasd.github.io/kvanttouch/kvanttouch.user.js
+// @downloadURL  https://moveonwasd.github.io/kvanttouch/kvanttouch.user.js
 // @match        https://moveonwasd.github.io/kvanttouch/*
 // @match        https://codeclassonline.s20.online/*
 // @match        https://erp.kvantastica.ru/*
@@ -25,6 +27,7 @@
     'use strict';
 
     const host = window.location.hostname;
+    const SCRIPT_VERSION = (typeof GM_info !== 'undefined' && GM_info.script) ? GM_info.script.version : '1.2.2';
 
     function gmFetchJson(url, validateFn, customHeaders = {}) {
         return new Promise((resolve) => {
@@ -122,7 +125,6 @@
 
     /**
      * Same-origin fetch fallback via open ERP tab or brief silent background tab.
-     * Solves Chrome MV3 SameSite/Sanctum cookie restrictions when GM_xmlhttpRequest is rejected.
      */
     function fetchErpViaTabBridge(today) {
         return new Promise((resolve) => {
@@ -193,7 +195,6 @@
             gmFetchJson(erpArchiveUrl, isErpValid, erpHeaders)
         ]);
 
-        // Paginate ERP via GM_xmlhttpRequest if needed
         if (erpStudy.ok && erpStudy.data.links && erpStudy.data.links.next && erpStudy.data.data.length > 0) {
             const lastDate = (erpStudy.data.data[erpStudy.data.data.length - 1].date_start || '').slice(0, 10);
             if (!lastDate || lastDate <= today) {
@@ -209,9 +210,9 @@
             }
         }
 
-        // If ERP GM_xmlhttpRequest was blocked by SameSite/Sanctum auth, fallback to same-origin ERP tab bridge
+        // If ERP GM_xmlhttpRequest failed auth, try same-origin ERP tab bridge
         if ((!erpStudy.ok && erpStudy.authRequired) || (!erpArchive.ok && erpArchive.authRequired)) {
-            console.log('[квантtouch] GM_xmlhttpRequest к ERP получил authRequired, пробую same-origin мост...');
+            console.log('[квантtouch] GM_xmlhttpRequest к ERP получил authRequired, запускаю same-origin мост...');
             const tabRes = await fetchErpViaTabBridge(today);
             if (tabRes) {
                 erpStudy = tabRes.erpStudy;
@@ -221,6 +222,7 @@
 
         return {
             date: today,
+            scriptVersion: SCRIPT_VERSION,
             crm,
             erpStudy,
             erpArchive
@@ -235,7 +237,7 @@
             window.postMessage({
                 source: 'KVANT_BRIDGE',
                 type: 'BRIDGE_READY',
-                version: (typeof GM_info !== 'undefined' && GM_info.script) ? GM_info.script.version : '1.2.1'
+                version: SCRIPT_VERSION
             }, '*');
         };
 
@@ -262,6 +264,7 @@
                         requestId: msg.requestId,
                         payload: {
                             date: msg.date,
+                            scriptVersion: SCRIPT_VERSION,
                             crm: { ok: false, unreachable: true, error: String(err) },
                             erpStudy: { ok: false, unreachable: true, error: String(err) },
                             erpArchive: { ok: false, unreachable: true, error: String(err) }
@@ -278,15 +281,30 @@
     // ROLE 2: ERP WORKER (Same-origin fetch inside erp.kvantastica.ru)
     // =========================================================================
     else if (host.includes('erp.kvantastica.ru')) {
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+            return match ? decodeURIComponent(match[1]) : null;
+        }
+
         async function sameOriginErpFetch(url) {
             try {
+                const headers = {
+                    'Accept': 'application/json, text/plain, */*',
+                    'X-Requested-With': 'XMLHttpRequest'
+                };
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                if (csrfMeta && csrfMeta.content) {
+                    headers['X-CSRF-TOKEN'] = csrfMeta.content;
+                }
+                const xsrf = getCookie('XSRF-TOKEN');
+                if (xsrf) {
+                    headers['X-XSRF-TOKEN'] = xsrf;
+                }
+
                 const res = await fetch(url, {
                     method: 'GET',
                     credentials: 'same-origin',
-                    headers: {
-                        'Accept': 'application/json, text/plain, */*',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
+                    headers
                 });
                 if (res.redirected && res.url.includes('/login')) {
                     return { ok: false, authRequired: true, status: 401 };
@@ -329,14 +347,16 @@
             if (erpStudy.ok && erpStudy.data.links && erpStudy.data.links.next && erpStudy.data.data.length > 0) {
                 const lastDate = (erpStudy.data.data[erpStudy.data.data.length - 1].date_start || '').slice(0, 10);
                 if (!lastDate || lastDate <= today) {
-                    const p2 = await sameOriginErpFetch(new URL(erpStudy.data.links.next).pathname + new URL(erpStudy.data.links.next).search);
+                    const nextUrl = new URL(erpStudy.data.links.next);
+                    const p2 = await sameOriginErpFetch(nextUrl.pathname + nextUrl.search);
                     if (p2.ok) erpStudy.data.data = erpStudy.data.data.concat(p2.data.data);
                 }
             }
             if (erpArchive.ok && erpArchive.data.links && erpArchive.data.links.next && erpArchive.data.data.length > 0) {
                 const lastDate = (erpArchive.data.data[erpArchive.data.data.length - 1].date_start || '').slice(0, 10);
                 if (!lastDate || lastDate >= today) {
-                    const p2 = await sameOriginErpFetch(new URL(erpArchive.data.links.next).pathname + new URL(erpArchive.data.links.next).search);
+                    const nextUrl = new URL(erpArchive.data.links.next);
+                    const p2 = await sameOriginErpFetch(nextUrl.pathname + nextUrl.search);
                     if (p2.ok) erpArchive.data.data = erpArchive.data.data.concat(p2.data.data);
                 }
             }
@@ -344,7 +364,6 @@
             GM_setValue('kvant_erp_res', { reqId, erpStudy, erpArchive });
         }
 
-        // If opened as a silent background sync tab, execute and close immediately
         const hash = window.location.hash || '';
         if (hash.includes('kvant_sync=')) {
             const params = new URLSearchParams(hash.slice(1));
@@ -356,7 +375,6 @@
                 }, 150);
             });
         } else {
-            // Normal open ERP tab: respond to live requests from dashboard
             GM_addValueChangeListener('kvant_erp_req', (name, oldVal, newVal, remote) => {
                 if (!remote || !newVal || !newVal.reqId) return;
                 runErpSync(newVal.reqId, newVal.today || getLocalDateStrings().today);
